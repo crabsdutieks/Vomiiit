@@ -11,9 +11,9 @@
       --bg:#0b0f14; --panel:#0f1620cc; --accent:#22c55e; --accent2:#a855f7; --danger:#ef4444; --text:#e5e7eb; --muted:#9ca3af;
       --glass:linear-gradient(180deg,#101826aa,#0b0f1499);
     }
-    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;}
+    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;user-select:none;-webkit-user-select:none;}
     canvas{position:fixed;inset:0;display:block;touch-action:none;}
-    .hud{position:fixed;inset:0;pointer-events:none;}
+    .hud{position:fixed;inset:0;pointer-events:none}
     .row{position:fixed;left:0;right:0;display:flex;gap:10px;align-items:center;pointer-events:auto}
     .top{top:env(safe-area-inset-top);padding:10px 14px;justify-content:space-between}
     .bottom{bottom:calc(env(safe-area-inset-bottom) + 10px);padding:0 14px;justify-content:space-between}
@@ -29,11 +29,11 @@
     .lives{display:flex;gap:6px}
     .heart{width:18px;height:18px;filter:drop-shadow(0 2px 4px #0008)}
     .overlay{position:fixed;inset:0;display:grid;place-items:center;background:linear-gradient(180deg,#02060a,transparent 40%),radial-gradient(1000px 600px at 50% -10%,#1b2636 0%,transparent 60%);}
-    .panel{width:min(640px,92vw);border-radius:22px;background:var(--glass);backdrop-filter:blur(12px);box-shadow:0 20px 60px #000a;padding:20px}
+    .panel{width:min(680px,92vw);border-radius:22px;background:var(--glass);backdrop-filter:blur(12px);box-shadow:0 20px 60px #000a;padding:20px}
     .title{font-size:36px;font-weight:900;letter-spacing:2px;text-align:center;margin:6px 0 8px;background:linear-gradient(90deg,#22c55e,#3b82f6,#a855f7);-webkit-background-clip:text;background-clip:text;color:transparent}
     .subtitle{opacity:.85;text-align:center;margin:0 0 10px}
     .grid{display:grid;grid-template-columns:1fr;gap:12px}
-    .rowbtn{display:flex;gap:10px;justify-content:center}
+    .rowbtn{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
     .how{font-size:14px;color:var(--muted);text-align:center}
     .hidden{display:none}
     .toast{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 18px);left:0;right:0;display:flex;justify-content:center;pointer-events:none}
@@ -41,21 +41,23 @@
     .aim{position:fixed;inset:0;pointer-events:none}
     .aim svg{position:absolute;transform:translate(-50%,-50%);opacity:0}
     .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#223047;border:1px solid #2c3b52;color:#a3d7ff}@media (min-width:720px){.title{font-size:44px}}
+  *{-webkit-tap-highlight-color:transparent}
+body{overscroll-behavior:none;-webkit-touch-callout:none}
 
   </style>
 </head>
 <body>
   <canvas id="c"></canvas>
-  <div class="hud">
+  <div class="hud" style="z-index:10">
     <!-- TOP BAR -->
     <div class="row top">
-      <div class="card" style="gap:14px;min-width:220px">
+      <div class="card" style="gap:14px;min-width:240px">
         <div>
           <div class="score" id="score">0</div>
           <div class="muted" id="combo">Combo x1</div>
         </div>
         <div style="flex:1"></div>
-        <div style="min-width:140px">
+        <div style="min-width:160px">
           <div class="muted" style="margin-bottom:6px">ULTRA VOMIT</div>
           <div class="meter"><i id="uv"></i></div>
         </div>
@@ -71,17 +73,18 @@
   <div class="card" style="gap:12px">
     <span class="badge">Glisse pour viser — Relâche pour vomir</span>
   </div>
-  <div style="display:flex;gap:8px">
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
     <button class="btn outline" id="btn-how">Comment jouer</button>
     <button class="btn acc" id="btn-share">Partager mon score</button>
   </div>
 </div>
 
-  </div>  <!-- START / PAUSE / GAME OVER PANELS -->  <div class="overlay" id="ov-start">
+  </div>  <!-- START / PAUSE / GAME OVER / HOW / CREDITS PANELS -->  <div class="overlay" id="ov-start" style="z-index:20">
     <div class="panel">
       <div class="title">VOMIT RUN</div>
       <p class="subtitle">Vise, relâche et inonde les cibles. Enchaîne pour charger l'<b>Ultra Vomit</b> !</p>
-      <div class="grid">
+      <div id="hsLine" class="how hidden">Meilleur score : <b id="bestStart">0</b></div>
+      <div class="grid" style="margin-top:8px">
         <div class="card" style="justify-content:space-between">
           <div>
             <div style="font-weight:700">Objectif</div>
@@ -99,7 +102,7 @@
         <button class="btn outline" id="btn-credits">Crédits</button>
       </div>
     </div>
-  </div>  <div class="overlay hidden" id="ov-pause">
+  </div>  <div class="overlay hidden" id="ov-pause" style="z-index:20">
     <div class="panel">
       <div class="title">Pause</div>
       <div class="rowbtn">
@@ -107,16 +110,28 @@
         <button class="btn outline" id="btn-restart">↻ Recommencer</button>
       </div>
     </div>
-  </div>  <div class="overlay hidden" id="ov-over">
+  </div>  <div class="overlay hidden" id="ov-over" style="z-index:20">
     <div class="panel">
       <div class="title">Game Over</div>
       <p class="subtitle" id="final-stats">Tu as fait 0 points • Combo x1</p>
+      <div class="how">Meilleur score : <b id="bestOver">0</b></div>
       <div class="rowbtn">
         <button class="btn acc" id="btn-replay">↻ Rejouer</button>
         <button class="btn" id="btn-share2">Partager</button>
       </div>
     </div>
-  </div>  <div class="overlay hidden" id="ov-credits">
+  </div>  <div class="overlay hidden" id="ov-how" style="z-index:20">
+    <div class="panel">
+      <div class="title">Comment jouer</div>
+      <ul class="how" style="line-height:1.5;margin:0 0 10px 0">
+        <li>Glisse le doigt pour viser (la distance règle la puissance).</li>
+        <li>Relâche pour tirer. Enchaîne les touches pour augmenter le combo.</li>
+        <li>La jauge <b>Ultra Vomit</b> se remplit : quand elle est pleine, tout explose.</li>
+        <li>Si une cible passe la ligne, tu perds une vie. 3 vies = fin.</li>
+      </ul>
+      <div class="rowbtn"><button class="btn" id="btn-how-back">OK</button></div>
+    </div>
+  </div>  <div class="overlay hidden" id="ov-credits" style="z-index:20">
     <div class="panel">
       <div class="title">Crédits</div>
       <p class="subtitle">Code & SFX génératifs • 3D WebGL • UI glass • © 2025</p>
@@ -139,6 +154,7 @@
     const ovStart = document.getElementById('ov-start');
     const ovPause = document.getElementById('ov-pause');
     const ovOver  = document.getElementById('ov-over');
+    const ovHow  = document.getElementById('ov-how');
     const ovCredits = document.getElementById('ov-credits');
     const btnPlay = document.getElementById('btn-play');
     const btnPause = document.getElementById('btn-pause');
@@ -146,6 +162,7 @@
     const btnRestart = document.getElementById('btn-restart');
     const btnReplay = document.getElementById('btn-replay');
     const btnHow = document.getElementById('btn-how');
+    const btnHowBack = document.getElementById('btn-how-back');
     const btnCredits = document.getElementById('btn-credits');
     const btnCreditsBack = document.getElementById('btn-credits-back');
     const btnShare = document.getElementById('btn-share');
@@ -160,9 +177,18 @@
     const aim = document.getElementById('aimDot');
     const toast = document.getElementById('toast');
     const toastMsg = document.getElementById('toastMsg');
+    const bestStart = document.getElementById('bestStart');
+    const bestOver = document.getElementById('bestOver');
+    const hsLine = document.getElementById('hsLine');
 
-    // ======= RENDERER & SCENE =======
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+    // ======= SAFE WEBGL =======
+    let renderer;
+    try{
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+    }catch(e){
+      document.body.innerHTML = '<div style="display:grid;place-items:center;height:100vh;color:#fff;font-family:system-ui;background:#0b0f14;padding:20px;text-align:center">WebGL non supporté sur cet appareil. Essaie un navigateur récent. </div>';
+      throw e;
+    }
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -178,12 +204,11 @@
 
     // ======= LIGHTING =======
     const hemi = new THREE.HemisphereLight(0x8fbcd4, 0x0b0f14, 0.9); scene.add(hemi);
-    const dir = new THREE.DirectionalLight(0xffffff, 1.3); dir.position.set(4,8,6); dir.castShadow = true;
+    const dir = new THREE.DirectionalLight(0xffffff, 1.2); dir.position.set(4,8,6); dir.castShadow = true;
     dir.shadow.mapSize.set(1024,1024); dir.shadow.camera.near=1; dir.shadow.camera.far=30; dir.shadow.camera.left=-10; dir.shadow.camera.right=10; dir.shadow.camera.top=10; dir.shadow.camera.bottom=-10; scene.add(dir);
 
     // ======= MATERIAL HELPERS =======
     const makeMat = (c)=> new THREE.MeshStandardMaterial({ color:c, roughness:0.55, metalness:0.05 });
-    const glassMat = new THREE.MeshPhysicalMaterial({ color:0x55fff0, roughness:0.05, metalness:0.0, transmission:0.7, thickness:0.35, transparent:true });
 
     // ======= GROUND =======
     const groundGeo = new THREE.PlaneGeometry(60, 200, 1, 1);
@@ -196,10 +221,10 @@
       laneGroup.clear();
       for(let i=0;i<18;i++){
         const g = new THREE.BoxGeometry(0.08,0.01,2.2);
-        const m = new THREE.MeshStandardMaterial({ color:0x23e0a0, emissive:0x0, emissiveIntensity:0.6 });
+        const m = new THREE.MeshStandardMaterial({ color:0x23e0a0, emissive:0x23e0a0, emissiveIntensity:0.35 });
         const b1 = new THREE.Mesh(g,m); const b2=b1.clone();
         b1.position.set(-1.2, 0.01, -i*10); b2.position.set(1.2,0.01,-i*10);
-        b1.castShadow=b2.castShadow=false; b1.receiveShadow=b2.receiveShadow=true;
+        b1.receiveShadow=b2.receiveShadow=true;
         laneGroup.add(b1,b2);
       }
     }
@@ -217,7 +242,6 @@
         const g = new THREE.BoxGeometry(w,h,d);
         const m = new THREE.MeshStandardMaterial({ color:colors[(Math.random()*colors.length)|0], roughness:0.9, metalness:0.02 });
         const b = new THREE.Mesh(g,m); b.position.set(x,h/2,z); b.castShadow=true; b.receiveShadow=true; city.add(b);
-        // windows glow
         if(Math.random()>0.6){
           const wg = new THREE.BoxGeometry(w*0.9, h*0.9, 0.02);
           const wm = new THREE.MeshBasicMaterial({ color:0x0, transparent:true, opacity:0.18 });
@@ -243,43 +267,39 @@
     // Camera slight bob
     let camTime = 0;
 
-    // ======= TARGETS =======
-    const targets = [];
+    // ======= TARGET POOL =======
+    const targets = []; const targetPool = [];
     function makeToilet(){
       const grp = new THREE.Group();
       const base = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.45,0.3,20), makeMat(0xdfe7ef)); base.position.y=0.15; base.castShadow=base.receiveShadow=true; grp.add(base);
       const bowl = new THREE.Mesh(new THREE.TorusGeometry(0.48,0.12,16,40), makeMat(0xf7fbff)); bowl.rotation.x=Math.PI/2; bowl.position.y=0.52; bowl.castShadow=bowl.receiveShadow=true; grp.add(bowl);
       const tank = new THREE.Mesh(new THREE.BoxGeometry(0.55,0.35,0.18), makeMat(0xe8f0f8)); tank.position.set(0,0.8,-0.1); tank.castShadow=tank.receiveShadow=true; grp.add(tank);
-      // glow accent
       const rim = new THREE.Mesh(new THREE.TorusGeometry(0.48,0.02,8,40), new THREE.MeshStandardMaterial({ color:0x22c55e, emissive:0x22c55e, emissiveIntensity:0.5 })); rim.rotation.x=Math.PI/2; rim.position.y=0.52; grp.add(rim);
       grp.userData = { radius: 0.55 };
       return grp;
     }
+    function getTarget(){ return targetPool.pop() || makeToilet(); }
+    function freeTarget(t){ t.visible=false; scene.remove(t); targetPool.push(t); }
 
     function spawnTarget(){
-      const t = makeToilet();
+      const t = getTarget(); t.visible=true;
       const laneX = (Math.random()<0.5?-1:1) * (Math.random()<0.5?0.8:1.6);
-      t.position.set(laneX, 0, -60);
+      t.position.set(laneX, 0, -60 - Math.random()*15);
       scene.add(t);
       targets.push(t);
     }
 
     // ======= VOMIT PARTICLES =======
-    const particleTex = (()=>{ // small soft circle texture
-      const s = 64; const cvs = document.createElement('canvas'); cvs.width=cvs.height=s; const cx=cvs.getContext('2d');
-      const gr = cx.createRadialGradient(s/2,s/2,1, s/2,s/2,s/2);
-      gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(1,'rgba(255,255,255,0)');
-      cx.fillStyle=gr; cx.fillRect(0,0,s,s); const tx = new THREE.CanvasTexture(cvs); tx.needsUpdate=true; return tx;
-    })();
-
-    const particleMat = new THREE.SpriteMaterial({ map: particleTex, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, color:0xffffff });
+    const particleTex = (()=>{ const s = 64; const cvs = document.createElement('canvas'); cvs.width=cvs.height=s; const cx=cvs.getContext('2d'); const gr = cx.createRadialGradient(s/2,s/2,1, s/2,s/2,s/2); gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(1,'rgba(255,255,255,0)'); cx.fillStyle=gr; cx.fillRect(0,0,s,s); const tx = new THREE.CanvasTexture(cvs); tx.needsUpdate=true; return tx; })();
+    const particleMatBase = new THREE.SpriteMaterial({ map: particleTex, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, color:0xffffff });
 
     const particles = []; const particlePool = [];
-    function getParticle(){ return particlePool.pop() || new THREE.Sprite(particleMat.clone()); }
+    let particleFactor = 1; // auto low-spec fallback
+    function getParticle(){ return particlePool.pop() || new THREE.Sprite(particleMatBase.clone()); }
     function freeParticle(p){ p.visible=false; p.scale.setScalar(0.001); p.userData.dead=true; particlePool.push(p); }
 
     function emitVomit(origin, dir, speed, spread, hueBase){
-      const count = 120; // burst size
+      const count = Math.floor(120 * particleFactor);
       for(let i=0;i<count;i++){
         const sp = speed*(0.7+Math.random()*0.6);
         const ang1 = (Math.random()-0.5)*spread;
@@ -300,35 +320,33 @@
       for(let i=particles.length-1;i>=0;i--){
         const p = particles[i]; const ud = p.userData; ud.age += dt;
         if(ud.age>ud.life){ scene.remove(p); particles.splice(i,1); freeParticle(p); continue; }
-        ud.v.addScaledVector(g, dt*0.6); // gravity
-        p.position.addScaledVector(ud.v, dt);
-        const alpha = Math.max(0, 1 - (ud.age/ud.life));
-        p.material.opacity = alpha;
+        ud.v.addScaledVector(g, dt*0.6); p.position.addScaledVector(ud.v, dt);
+        const alpha = Math.max(0, 1 - (ud.age/ud.life)); p.material.opacity = alpha;
       }
     }
 
     // ======= GAME STATE =======
     const state = {
       running:false, paused:false,
-      score:0, combo:1, comboTimer:0, uv:0, lives:3, 
-      spawnT:0, spawnCd:1.2, speed: 9,
+      score:0, combo:1, comboTimer:0, uv:0, lives:3,
+      spawnT:0, spawnCd:1.1, speed: 9,
       aim:{ active:false, sx:0, sy:0, x:0, y:0, power:0, dir:new THREE.Vector3(0,0,-1) },
+      best: Number(localStorage.getItem('vomitrun_highscore')||0)
     };
 
     function reset(){
-      state.running=true; state.paused=false; state.score=0; state.combo=1; state.comboTimer=0; state.uv=0; state.lives=3; state.spawnT=0; state.spawnCd=1.2; state.speed=9;
+      state.running=true; state.paused=false; state.score=0; state.combo=1; state.comboTimer=0; state.uv=0; state.lives=3; state.spawnT=0; state.spawnCd=1.1; state.speed=9;
       updateHUD();
-      // clear targets & particles
-      targets.forEach(t=>scene.remove(t)); targets.length=0;
+      targets.forEach(freeTarget); targets.length=0;
       particles.forEach(p=>scene.remove(p)); particles.length=0; particlePool.length=0;
-      // initial spawns
       for(let i=0;i<5;i++){ spawnTarget(); }
     }
 
     function gameOver(){
       state.running=false; ovOver.classList.remove('hidden');
       finalStats.textContent = `Tu as fait ${state.score} points • Combo x${state.combo}`;
-      shareMessageCache = buildShareText();
+      if(state.score>state.best){ state.best=state.score; localStorage.setItem('vomitrun_highscore', String(state.best)); }
+      bestOver.textContent = state.best;
     }
 
     function updateHUD(){
@@ -345,10 +363,171 @@
       }
     }
 
-    // ======= AUDIO (WebAudio: simple soundtrack + sfx) =======
-    let AC, musicOn=true, sfxOn=true, musicNodes=null;
-    function initAudio(){
-      if(AC) return; AC = new (window.AudioContext||window.webkitAudioContext)();
-    }
+    // ======= AUDIO (WebAudio) =======
+    let AC, musicOn = JSON.parse(localStorage.getItem('vomitrun_music')||'true'), sfxOn = JSON.parse(localStorage.getItem('vomitrun_sfx')||'true');
+    let musicNodes=null;
+    function initAudio(){ if(AC) return; AC = new (window.AudioContext||window.webkitAudioContext)(); }
     function playBeep(freq, dur=0.08, vol=0.2){ if(!sfxOn||!AC) return; const t=AC.currentTime; const o=AC.createOscillator(); const g=AC.createGain(); o.type='square'; o.frequency.value=freq; o.connect(g); g.connect(AC.destination); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.start(); o.stop(t+dur); }
-    function playNoise(dur=0.2, vol=0.15){ if(!sfxOn||!AC) return; const t=AC.currentTime; const b=AC.createBuffer(1, AC.sampleRate*dur, AC.sampleRate); const data=b.getChannelData(0); for(let i=0;i<data.length;i++){ data[i]= (Math.random()*2-1) * (1-i/data.length); } const src=AC.createBufferSource(); src.buffer=b; const g=AC.createGain(); const bi=AC.createBiquadFilter(); bi.type='bandpass'; bi.frequency.value=800; bi.Q.value=1.2; src.connect(bi
+    function playNoise(dur=0.2, vol=0.15){ if(!sfxOn||!AC) return; const t=AC.currentTime; const b=AC.createBuffer(1, AC.sampleRate*dur, AC.sampleRate); const data=b.getChannelData(0); for(let i=0;i<data.length;i++){ data[i]= (Math.random()*2-1) * (1-i/data.length); } const src=AC.createBufferSource(); src.buffer=b; const g=AC.createGain(); const bi=AC.createBiquadFilter(); bi.type='bandpass'; bi.frequency.value=800; bi.Q.value=1.2; src.connect(bi); bi.connect(g); g.connect(AC.destination); g.gain.value=vol; src.start(); src.stop(t+dur); }
+
+    function startMusic(){ if(!musicOn||!AC||musicNodes) return; const master=AC.createGain(); master.gain.value=0.16; master.connect(AC.destination);
+      const bpm=95; const sec = 60/bpm; const startT = AC.currentTime + 0.05; const bars = 256; // ~ 10 min
+      for(let bar=0;bar<bars;bar++){
+        for(let i=0;i<4;i++){
+          const base = startT + (bar*4+i)*sec;
+          // kick
+          const o=AC.createOscillator(); const g=AC.createGain(); o.type='sine'; o.frequency.setValueAtTime(120,base); o.frequency.exponentialRampToValueAtTime(50,base+0.18); g.gain.setValueAtTime(0.0001,base); g.gain.exponentialRampToValueAtTime(0.8,base+0.01); g.gain.exponentialRampToValueAtTime(0.0001,base+0.2); o.connect(g); g.connect(master); o.start(base); o.stop(base+0.21);
+          // hat x2
+          for(let h=0;h<2;h++){ const d=0.5*h*sec; const b=AC.createBuffer(1, AC.sampleRate*0.04, AC.sampleRate); const data=b.getChannelData(0); for(let j=0;j<data.length;j++){ data[j]=Math.random()*2-1; } const s=AC.createBufferSource(); s.buffer=b; const hp=AC.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=8000; const gg=AC.createGain(); gg.gain.value=0.06; s.connect(hp); hp.connect(gg); gg.connect(master); s.start(base+d); s.stop(base+d+0.04); }
+          // bass
+          const notes=[55,55,55,41, 55,55,55,41]; const n = notes[(bar*4+i)%notes.length];
+          const ob=AC.createOscillator(); const gb=AC.createGain(); const f=AC.createBiquadFilter(); ob.type='sawtooth'; ob.frequency.value=n; gb.gain.value=0.0001; ob.connect(gb); f.type='lowpass'; f.frequency.value=320; gb.connect(f); f.connect(master); gb.gain.exponentialRampToValueAtTime(0.12,base+0.02); gb.gain.exponentialRampToValueAtTime(0.0001,base+0.4); ob.start(base); ob.stop(base+0.42);
+        }
+      }
+      musicNodes = { master };
+    }
+    function stopMusic(){ if(!AC||!musicNodes) return; musicNodes.master.disconnect(); musicNodes=null; }
+
+    // ======= INPUT / AIM (Pointer-only) =======
+    const raycaster = new THREE.Raycaster();
+    const plane = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
+
+    function screenToWorldDir(x, y){
+      const ndc = new THREE.Vector2( (x/window.innerWidth)*2-1, -(y/window.innerHeight)*2+1 );
+      raycaster.setFromCamera(ndc, camera);
+      const pt = new THREE.Vector3();
+      raycaster.ray.intersectPlane(plane, pt);
+      const o = new THREE.Vector3(0,2.4,0.4);
+      const dir = pt.sub(o).normalize(); if(dir.y<0.05) dir.y=0.05; return dir.normalize();
+    }
+
+    function startAim(x,y){ state.aim.active=true; state.aim.sx=x; state.aim.sy=y; setAim(x,y); }
+    function setAim(x,y){
+      state.aim.x=x; state.aim.y=y; const dir=screenToWorldDir(x,y); state.aim.dir.copy(dir);
+      const dx = x - state.aim.sx; const dy = y - state.aim.sy; const dist = Math.hypot(dx,dy);
+      state.aim.power = Math.min(1, dist / (window.innerWidth*0.4));
+      aim.style.left = x+"px"; aim.style.top = y+"px"; aim.style.opacity = 0.9;
+      aim.style.transform = `translate(-50%,-50%) scale(${0.9 + state.aim.power*0.5})`;
+    }
+    function endAim(){
+      if(!state.aim.active) return; state.aim.active=false; aim.style.opacity = 0;
+      const power = 9 + state.aim.power * 12;
+      const hue = (performance.now()/25)%360;
+      emitVomit(new THREE.Vector3(0,2.4,0.4), state.aim.dir, power, 0.6 - state.aim.power*0.3, hue);
+      sfxOn && (playNoise(0.18, 0.12));
+      checkHits(state.aim.dir, power);
+    }
+
+    function checkHits(dir, speed){
+      const origin = new THREE.Vector3(0,2.4,0.4);
+      const g = new THREE.Vector3(0,-9.8,0);
+      let comboHit = false;
+      for(let t=0;t<2.0;t+=0.02){
+        const pos = new THREE.Vector3().copy(origin).addScaledVector(dir, speed*t).addScaledVector(g, 0.5*t*t);
+        for(let i=targets.length-1;i>=0;i--){
+          const tg = targets[i]; const r = tg.userData.radius || 0.6; const d = pos.distanceTo(tg.position.clone().add(new THREE.Vector3(0,0.5,0)));
+          if(d<r){
+            sfxOn && playBeep(500+Math.random()*200,0.07,0.2);
+            emitVomit(tg.position.clone().add(new THREE.Vector3(0,0.6,0)), new THREE.Vector3(0,1,0), 4, 1.2, (performance.now()/20)%360);
+            freeTarget(tg); targets.splice(i,1);
+            state.score += 10*state.combo; comboHit = true; state.uv = Math.min(1, state.uv + 0.08);
+            state.spawnCd = Math.max(0.6, state.spawnCd * 0.995);
+          }
+        }
+      }
+      if(comboHit){ state.combo++; state.comboTimer = 2.6; } else { state.combo = 1; }
+      updateHUD();
+    }
+
+    // ======= MAIN UPDATE =======
+    let last = 0, slowFrames = 0;
+    function update(now){
+      const t = now*0.001; const dt = Math.min(0.033, last? (t-last): 0.016); last = t;
+      if(state.running && !state.paused){
+        camTime += dt*2; camera.position.x = Math.sin(camTime)*0.08; camera.position.y = 3.6 + Math.sin(camTime*2)*0.03; camera.lookAt(0,2.6,0);
+        for(let i=targets.length-1;i>=0;i--){
+          const tg = targets[i]; tg.position.z += state.speed*dt;
+          if(tg.position.z > 2){
+            freeTarget(tg); targets.splice(i,1);
+            state.lives--; sfxOn && playBeep(140,0.15,0.25);
+            if(state.lives<=0){ updateHUD(); return gameOver(); }
+            updateHUD();
+          }
+        }
+        state.spawnT += dt; if(state.spawnT > state.spawnCd){ state.spawnT=0; spawnTarget(); }
+        if(state.combo>1){ state.comboTimer -= dt; if(state.comboTimer<=0){ state.combo=1; comboEl.textContent=`Combo x1`; } }
+        if(state.uv>=1){
+          state.uv = 0;
+          sfxOn && playBeep(700,0.3,0.3);
+          for(let i=targets.length-1;i>=0;i--){ const tg=targets[i]; emitVomit(tg.position.clone().add(new THREE.Vector3(0,0.6,0)), new THREE.Vector3(0,1,0), 5, 1.5, (performance.now()/10)%360); freeTarget(tg); targets.splice(i,1); state.score += 15; }
+          updateHUD(); bloomPass.strength = 0.9; setTimeout(()=> bloomPass.strength=0.45, 250);
+        }
+        updateParticles(dt);
+      }
+      composer.render();
+
+      // performance adaption (reduce DPR/particles if many slow frames)
+      if(dt>0.028){ slowFrames++; if(slowFrames>45){ particleFactor = Math.max(0.6, particleFactor*0.85); const newDpr = Math.max(1, Math.min(2, (renderer.getPixelRatio?.()||window.devicePixelRatio||1) * 0.9)); renderer.setPixelRatio(newDpr); slowFrames=0; } }
+      else slowFrames = Math.max(0, slowFrames-1);
+
+      requestAnimationFrame(update);
+    }
+
+    // ======= SHARE =======
+    function buildShareText(){ return `J'ai survécu à VOMIT RUN avec ${state.score} points (Combo x${state.combo}) 💥 Essaie de me battre !`; }
+    async function shareScore(){
+      const url = location.href;
+      const text = buildShareText();
+      if(navigator.share){ try{ await navigator.share({ text, url }); return; }catch(e){} }
+      const msg = encodeURIComponent(`${text} ${url}`);
+      window.open(`https://twitter.com/intent/tweet?text=${msg}`, '_blank');
+    }
+
+    // ======= UI EVENTS =======
+    btnPlay.addEventListener('click', async ()=>{ ovStart.classList.add('hidden'); initAudio(); try{ await AC.resume(); }catch{} startMusic(); reset(); });
+    btnPause.addEventListener('click', ()=>{ if(!state.running) return; state.paused=true; ovPause.classList.remove('hidden'); });
+    btnResume.addEventListener('click', ()=>{ state.paused=false; ovPause.classList.add('hidden'); });
+    btnRestart.addEventListener('click', ()=>{ ovPause.classList.add('hidden'); reset(); });
+    btnReplay.addEventListener('click', ()=>{ ovOver.classList.add('hidden'); reset(); });
+    btnHow.addEventListener('click', ()=>{ ovHow.classList.remove('hidden'); });
+    btnHowBack.addEventListener('click', ()=>{ ovHow.classList.add('hidden'); });
+    btnCredits.addEventListener('click', ()=>{ ovCredits.classList.remove('hidden'); });
+    btnCreditsBack.addEventListener('click', ()=>{ ovCredits.classList.add('hidden'); });
+
+    btnShare.addEventListener('click', shareScore);
+    btnShare2.addEventListener('click', shareScore);
+
+    btnSfx.addEventListener('click', ()=>{ sfxOn=!sfxOn; btnSfx.textContent = sfxOn? '🔊':'🔈'; localStorage.setItem('vomitrun_sfx', JSON.stringify(sfxOn)); });
+    btnMusic.addEventListener('click', ()=>{ musicOn=!musicOn; btnMusic.textContent = musicOn? '🎵':'🔇'; localStorage.setItem('vomitrun_music', JSON.stringify(musicOn)); if(musicOn){ initAudio(); AC.resume && AC.resume(); startMusic(); } else { stopMusic(); } });
+
+    // ======= INPUT on CANVAS only (avoid stealing UI taps) =======
+    function getXY(e){ return e.touches? { x:e.touches[0].clientX, y:e.touches[0].clientY } : { x:e.clientX, y:e.clientY }; }
+    function canvasDown(e){ if(!state.running || state.paused) return; const {x,y}=getXY(e); startAim(x,y); }
+    function canvasMove(e){ if(!state.running || state.paused || !state.aim.active) return; const {x,y}=getXY(e); setAim(x,y); }
+    function canvasUp(){ if(!state.running || state.paused) return; endAim(); }
+    canvas.addEventListener('pointerdown', canvasDown, { passive:true });
+    canvas.addEventListener('pointermove', canvasMove, { passive:true });
+    canvas.addEventListener('pointerup', canvasUp, { passive:true });
+
+    // ======= RESIZE / COMPOSER =======
+    function resize(){
+      const dpr = Math.min(2.5, window.devicePixelRatio||1);
+      const w = window.innerWidth, h = window.innerHeight;
+      renderer.setPixelRatio(dpr); renderer.setSize(w,h,false);
+      camera.aspect = w/h; camera.updateProjectionMatrix();
+      const size = new THREE.Vector2(w,h);
+      if(!composer){ composer = new EffectComposer(renderer); renderPass = new RenderPass(scene,camera); composer.addPass(renderPass); bloomPass = new UnrealBloomPass(size, 0.45, 0.9, 0.85); composer.addPass(bloomPass); }
+      composer.setSize(w,h);
+      // show highscore at start if any
+      if(state.best>0){ bestStart.textContent = state.best; hsLine.classList.remove('hidden'); }
+    }
+    window.addEventListener('resize', resize, { passive:true }); resize();
+
+    // ======= KICKOFF RENDER LOOP =======
+    requestAnimationFrame(update);
+
+    // ======= SAFARI AUDIO UNLOCK =======
+    window.addEventListener('click', ()=>{ try{ initAudio(); AC.resume && AC.resume(); }catch{} }, { once:true });
+
+  </script></body>
+</html>
