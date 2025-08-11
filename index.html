@@ -1,267 +1,403 @@
-<!doctype html>
-
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>Tip Toss</title>
-<meta name="theme-color" content="#0b0b12" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lucky Bar – Demo (offline)</title>
 <style>
-  :root{ --bg:#0b0b12; --panel:#121623cc; --txt:#eef2ff; --muted:#9aa3b2; --acc:#22c55e; --warn:#f59e0b; --danger:#ef4444; }
-  html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none;}
-  canvas{position:fixed;inset:0;display:block;touch-action:none;background:radial-gradient(1200px 800px at 50% 15%,#1a2040 0%,#0b0b12 60%);} 
-  .hud{position:fixed;inset:0;pointer-events:none}
-  .row{position:fixed;left:0;right:0;display:flex;gap:10px;align-items:center;pointer-events:auto}
-  .top{top:env(safe-area-inset-top);padding:10px 14px;justify-content:space-between}
-  .bottom{bottom:calc(env(safe-area-inset-bottom) + 10px);padding:0 14px;justify-content:space-between}
-  .card{display:flex;gap:10px;align-items:center;padding:10px 14px;border-radius:16px;background:var(--panel);backdrop-filter:blur(10px);box-shadow:0 10px 30px #0006}
-  .score{font-weight:800;font-size:18px}
-  .muted{color:var(--muted);font-size:12px}
-  .btn{pointer-events:auto;border:0;border-radius:16px;padding:12px 16px;background:#141c27;color:var(--txt);font-weight:700;box-shadow:0 6px 18px #0007;display:inline-flex;align-items:center;gap:8px}
-  .btn.acc{background:var(--acc);color:#041007}
-  .btn.warn{background:var(--warn);color:#111}
-  .btn.icon{padding:10px;border-radius:14px;width:44px;height:44px;justify-content:center}
-  .meter{height:10px;border-radius:999px;background:#111826;border:1px solid #253041;overflow:hidden}
-  .meter>i{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#06b6d4,#3b82f6,#a855f7);width:0%}
-  .overlay{position:fixed;inset:0;display:grid;place-items:center;background:linear-gradient(180deg,#02060acc,transparent 40%),radial-gradient(1000px 600px at 50% -10%,#1b2636bb 0%,transparent 60%);} 
-  .panel{width:min(680px,92vw);border-radius:22px;background:var(--panel);backdrop-filter:blur(12px);box-shadow:0 20px 60px #000a;padding:22px}
-  .title{font-size:36px;font-weight:900;letter-spacing:1px;text-align:center;margin:6px 0 6px;background:linear-gradient(90deg,#22c55e,#3b82f6,#a855f7);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .rowbtn{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-  .hidden{display:none}
+  :root{
+    --bg:#0b0f14; --panel:#121823; --muted:#8aa0b2; --text:#eaf2f9;
+    --green:#27d07d; --yellow:#ffcf40; --red:#ff4d5a; --primary:#6aa6ff;
+    --accent:#8b5cf6;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:radial-gradient(1200px 600px at 70% -10%,#101826 0%,#0b0f14 55%);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:920px;margin:0 auto;padding:20px}
+  header{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:16px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:38px;height:38px;border-radius:12px;background:
+    radial-gradient(120% 120% at 10% 10%,var(--accent),transparent 60%),
+    conic-gradient(from 210deg,var(--primary),#22d3ee 40%,var(--green));
+    box-shadow:0 0 24px #1e293b70}
+  h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.3px}
+  .badge{font-size:12px;color:#a0aec0;border:1px solid #223047;border-radius:999px;padding:4px 10px}
+  .card{background:linear-gradient(180deg,#0f1520, #0d131c);border:1px solid #1c2736;border-radius:18px;box-shadow:0 10px 30px #00000060}
+  .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .panel{padding:18px}
+  .sep{height:1px;background:#1b2635}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .grow{flex:1}
+  .muted{color:var(--muted);font-size:14px}
+  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+  .btn{
+    background:#101a28;border:1px solid #243247;color:#dbe7ff;border-radius:12px;
+    padding:10px 14px;font-weight:600;cursor:pointer;transition:.2s;user-select:none
+  }
+  .btn:hover{transform:translateY(-1px);box-shadow:0 8px 18px #00000050}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn.primary{background:linear-gradient(180deg,#2a64ff,#1f4fe3);border-color:#355df1}
+  .btn.green{background:linear-gradient(180deg,#1fbf73,#17a562);border-color:#1fa46e}
+  .btn.yellow{background:linear-gradient(180deg,#f5c542,#dfad1e);border-color:#e0b12a;color:#0a0a0a}
+  .btn.red{background:linear-gradient(180deg,#ff5865,#e03c4a);border-color:#e34a56}
+  input[type="number"],input[type="text"]{
+    width:100%;background:#0e1521;border:1px solid #233149;color:#eaf2f9;border-radius:12px;padding:10px 12px;
+    font-size:15px;outline:none
+  }
+  .pill{padding:8px 10px;border-radius:10px;background:#0f1624;border:1px solid #223047}
+  .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .kpi .box{padding:14px;border:1px solid #1b2635;border-radius:14px;background:#0c121b}
+  .kpi .val{font-weight:800;font-size:18px}
+  .kpi .lab{font-size:12px;color:#8aa0b2}
+  .game{
+    position:relative;height:240px;border-radius:16px;border:1px solid #1b2635;background:#0b121b;overflow:hidden;
+    box-shadow:inset 0 0 0 1px #0a1018;
+  }
+  .bar{
+    position:absolute;left:20px;right:20px;top:50%;height:24px;transform:translateY(-50%);
+    border-radius:14px;background:linear-gradient(90deg,var(--red) 0 44%, var(--yellow) 44% 56%, var(--green) 56% 100%);
+    box-shadow:inset 0 0 20px #00000080, 0 0 0 1px #1a2331;
+  }
+  .cursor{
+    --x:50%; position:absolute;top:calc(50% - 22px);left:calc(var(--x));
+    width:4px;height:44px;background:#eaf2f9;border-radius:2px;box-shadow:0 0 14px #eaf2f980;
+  }
+  .ticker{
+    position:absolute;left:0;right:0;top:24px;display:flex;justify-content:center;gap:12px;font-size:12px;color:#a8c0d9
+  }
+  .zones{position:absolute;bottom:20px;left:20px;right:20px;display:flex;justify-content:space-between;font-size:12px}
+  .zones span{padding:6px 10px;border-radius:999px;background:#0d1522;border:1px solid #202d42}
+  .zones .g{color:var(--green);border-color:#174734}
+  .zones .y{color:#f4cf56;border-color:#5b4a1c}
+  .zones .r{color:var(--red);border-color:#5a1a1f}
+  .toast{margin-top:8px;font-size:14px;color:#cfe1ff}
+  .good{color:#46e795} .warn{color:#ffd976} .bad{color:#ff7b86}
+  .list{display:grid;gap:6px}
+  .item{display:flex;justify-content:space-between;gap:8px;padding:10px;border:1px solid #1b2635;border-radius:12px;background:#0c121b}
+  .right{text-align:right}
+  .tag{font-size:11px;border:1px solid #1e2a3f;padding:2px 8px;border-radius:999px;color:#a8bfd6}
+  footer{margin-top:14px;color:#6e86a3;font-size:12px;text-align:center}
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
-<div class="hud">
-  <div class="row top">
-    <div class="card" style="gap:14px;min-width:210px">
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo"></div>
       <div>
-        <div class="score">Score: <span id="score">0</span></div>
-        <div class="muted" id="combo">Combo x1</div>
-      </div>
-      <div style="flex:1"></div>
-      <div style="min-width:150px">
-        <div class="muted" style="margin-bottom:6px">Barre Suspicion</div>
-        <div class="meter"><i id="sus"></i></div>
+        <h1>Lucky Bar — Demo (offline)</h1>
+        <div class="muted">Simulation locale sans blockchain • Abstract (ETH) fictif</div>
       </div>
     </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn icon" id="btn-pause">⏸</button>
-      <button class="btn icon" id="btn-sfx">🔊</button>
-      <button class="btn icon" id="btn-music">🎵</button>
+    <div class="row">
+      <button id="connectBtn" class="btn">Connect Wallet (fake)</button>
+      <span id="addrTag" class="tag" style="display:none;"></span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- GAME PANEL -->
+    <div class="card">
+      <div class="panel">
+        <div class="kpi">
+          <div class="box"><div class="lab">Solde</div><div id="balance" class="val mono">0.0000 ETH</div></div>
+          <div class="box"><div class="lab">Mise</div><div id="stakeDisplay" class="val mono">0.0010 ETH</div></div>
+          <div class="box"><div class="lab">Epoch Seed</div><div id="epochShort" class="val mono" title="Seed courante"></div></div>
+        </div>
+      </div>
+      <div class="sep"></div>
+      <div class="panel">
+        <div class="game" id="game">
+          <div class="ticker" id="ticker">En attente…</div>
+          <div class="bar" id="bar"></div>
+          <div class="cursor" id="cursor"></div>
+          <div class="zones">
+            <span class="r">Rouge: 45% (x0)</span>
+            <span class="y">Jaune: 10% (x1)</span>
+            <span class="g">Vert: 45% (x2)</span>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:14px">
+          <div class="grow">
+            <div class="muted" style="margin-bottom:6px">Mise (ETH fictif)</div>
+            <input id="stake" type="number" step="0.0001" min="0.001" max="0.01" value="0.001" />
+          </div>
+          <div class="row">
+            <button class="btn pill" data-q="min">Min</button>
+            <button class="btn pill" data-q="x2">x2</button>
+            <button class="btn pill" data-q="max">Max</button>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <button id="playBtn" class="btn primary">Jouer</button>
+          <button id="addFunds" class="btn green">Recharger +0.05</button>
+          <button id="subFunds" class="btn red">Retirer -0.05</button>
+          <span class="muted">Mise min 0.001 • max 0.01 • révélation ~ 2–3s (demo)</span>
+        </div>
+        <div id="toast" class="toast"></div>
+      </div>
+    </div>
+
+    <!-- HISTORY / INFO -->
+    <div class="card">
+      <div class="panel">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <h2 style="margin:0;font-size:16px">Historique</h2>
+          <span id="house" class="tag">Bankroll (fake): 1.0000 ETH</span>
+        </div>
+        <div id="history" class="list" style="margin-top:10px;"></div>
+      </div>
+      <div class="sep"></div>
+      <div class="panel">
+        <h3 style="margin:0 0 8px 0;font-size:15px">Comment ça marche (demo)</h3>
+        <div class="muted">
+          • Un <span class="mono">epochSeed</span> change toutes les 10s (local).<br/>
+          • À chaque pari, on génère un <span class="mono">userSalt</span>, on dérive un aléa avec <span class="mono">SHA-256(epochSeed + userSalt)</span>.<br/>
+          • Résultat: Rouge 45% / Jaune 10% / Vert 45%.<br/>
+          • Tout est <b>hors-chaîne</b> ici — c’est juste pour tester l’UX et la logique.
+        </div>
+      </div>
     </div>
   </div>
-  <div class="row bottom">
-    <div class="card">Tape pour lancer un billet. Quand la porte s'ouvre → <b>NE TOUCHE PLUS</b>.</div>
-    <div style="display:flex;gap:8px">
-      <button class="btn" id="btn-share">Partager</button>
-    </div>
-  </div>
-</div><!-- Overlays --><div class="overlay" id="ov-start">
-  <div class="panel">
-    <div class="title">Tip Toss</div>
-    <p style="opacity:.9;text-align:center;margin:8px 0 14px">Spectacle burlesque stylisé (aucune nudité). Lance des billets dans le <b>rythme</b>, mais cache-toi quand la porte s'entrouvre…</p>
-    <div class="rowbtn">
-      <button class="btn acc" id="btn-play">▶ Jouer</button>
-      <button class="btn" id="btn-how">Comment jouer</button>
-    </div>
-  </div>
+
+  <footer>Prototype local. Pour la vraie dApp, on branchera Abstract (L2) et un contrat Solidity avec commit-reveal.</footer>
 </div>
-<div class="overlay hidden" id="ov-how">
-  <div class="panel">
-    <div class="title">Comment jouer</div>
-    <ul style="line-height:1.6;margin:0 0 10px 0">
-      <li>Tape sur l'écran quand le <b>cercle de beat</b> se ferme pour un lancer parfait.</li>
-      <li>Chaque réussite augmente le <b>combo</b> et ton score.</li>
-      <li>Si la <b>porte</b> brille → ne tape pas. Taper pendant ce temps augmente la <b>Suspicion</b>.</li>
-      <li>Suspicion à 100% → Game Over.</li>
-    </ul>
-    <div class="rowbtn"><button class="btn" id="btn-how-back">OK</button></div>
-  </div>
-</div>
-<div class="overlay hidden" id="ov-pause">
-  <div class="panel"><div class="title">Pause</div>
-    <div class="rowbtn"><button class="btn acc" id="btn-resume">⏵ Reprendre</button><button class="btn" id="btn-restart">↻ Recommencer</button></div>
-  </div>
-</div>
-<div class="overlay hidden" id="ov-over">
-  <div class="panel">
-    <div class="title">C'est cramé !</div>
-    <p style="text-align:center;opacity:.9" id="final">Score 0 • Combo x1</p>
-    <div class="rowbtn"><button class="btn acc" id="btn-replay">↻ Rejouer</button><button class="btn" id="btn-share2">Partager</button></div>
-  </div>
-</div><audio id="bgm" loop src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1e50c7fa68.mp3?filename=fun-background-music-111365.mp3"></audio> <audio id="sfxHit" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_58a6d85f8e.mp3?filename=pop-94319.mp3"></audio> <audio id="sfxBad" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2f3df8b5e0.mp3?filename=wrong-47985.mp3"></audio> <audio id="sfxDoor" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2b45a5ee9d.mp3?filename=open-door-115105.mp3"></audio>
 
 <script>
-(() => {
-  const canvas = document.getElementById('c');
-  const ctx = canvas.getContext('2d');
-  const W = () => window.innerWidth, H = () => window.innerHeight;
-  const scoreEl = document.getElementById('score');
-  const comboEl = document.getElementById('combo');
-  const susEl = document.getElementById('sus');
-  const ovStart = document.getElementById('ov-start');
-  const ovHow = document.getElementById('ov-how');
-  const ovPause = document.getElementById('ov-pause');
-  const ovOver = document.getElementById('ov-over');
-  const final = document.getElementById('final');
-  const btn = id => document.getElementById(id);
-  const bgm = document.getElementById('bgm');
-  const sfxHit = document.getElementById('sfxHit');
-  const sfxBad = document.getElementById('sfxBad');
-  const sfxDoor = document.getElementById('sfxDoor');
+(function(){
+  // ================== UTIL ==================
+  const $ = sel => document.querySelector(sel);
+  const fmt = n => (Math.round(n*10000)/10000).toFixed(4);
+  const sleep = ms => new Promise(r=>setTimeout(r, ms));
 
-  // Resize
-  function resize(){ canvas.width = W(); canvas.height = H(); }
-  window.addEventListener('resize', resize, { passive:true });
-  resize();
+  async function sha256_hex(str){
+    const enc = new TextEncoder().encode(str);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+  function short(hex){ return hex.slice(0,6) + "…" + hex.slice(-4); }
 
-  // Game state
-  const state = { running:false, paused:false, score:0, combo:1, comboT:0, suspicion:0, beat:0,
-    dancerT:0, bills:[], door: {open:false,t:0,cd: 3+Math.random()*3}, audioReady:false, musicOn:true, sfxOn:true };
+  // ================== STATE ==================
+  const state = {
+    connected:false,
+    addr:null,
+    balance: 0.10,       // solde joueur fictif
+    house:   1.00,       // bankroll "maison" fictive
+    min: 0.001, max: 0.01,
+    epochSeed: null,
+    lastEpochAt: 0,
+    epochDurMs: 10_000,  // 10s
+    playing:false,
+  };
 
-  function reset(){
-    state.running=true; state.paused=false; state.score=0; state.combo=1; state.comboT=0; state.suspicion=0; state.beat=0; state.dancerT=0; state.bills.length=0; state.door={open:false,t:0,cd: 2+Math.random()*3};
-    updateHUD();
+  // init seed
+  async function newEpochSeed(){
+    const rand = crypto.getRandomValues(new Uint8Array(32));
+    const seed = [...rand].map(b=>b.toString(16).padStart(2,"0")).join("");
+    state.epochSeed = seed;
+    state.lastEpochAt = Date.now();
+    $("#epochShort").textContent = short(seed);
   }
 
-  function updateHUD(){ scoreEl.textContent=state.score; comboEl.textContent = `Combo x${state.combo}`; susEl.style.width = Math.min(100, state.suspicion)+'%'; }
+  // rotate seed every 10s
+  setInterval(()=>{ newEpochSeed(); }, state.epochDurMs);
 
-  // Simple soundtrack unlock
-  function unlockAudio(){ if(!state.audioReady){ bgm.volume=0.35; state.musicOn && bgm.play().catch(()=>{}); state.audioReady=true; } }
+  // ================== UI BINDINGS ==================
+  const connectBtn = $("#connectBtn");
+  const addrTag = $("#addrTag");
+  const bal = $("#balance");
+  const house = $("#house");
+  const stakeInput = $("#stake");
+  const stakeDisplay = $("#stakeDisplay");
+  const toast = $("#toast");
+  const history = $("#history");
+  const playBtn = $("#playBtn");
+  const addFunds = $("#addFunds");
+  const subFunds = $("#subFunds");
+  const cursor = $("#cursor");
+  const bar = $("#bar");
+  const ticker = $("#ticker");
 
-  // Input
-  function tap(){ if(!state.running||state.paused) return; 
-    if(state.door.open){ // bad — wife checks
-      state.suspicion = Math.min(100, state.suspicion + 35);
-      if(state.sfxOn){ sfxBad.currentTime=0; sfxBad.play(); }
-      state.combo=1; state.comboT=0; updateHUD();
-      if(state.suspicion>=100) return gameOver();
-      return;
-    }
-    // good: throw bill timed to beat
-    const perfect = state.beat>0.75 || state.beat<0.15; // ring near the beat
-    const x = W()*0.55 + (Math.random()*40-20);
-    const y = H()*0.5 + (Math.random()*20-10);
-    state.bills.push({x:W()*0.25, y:H()*0.85, vx:(x - W()*0.25)/20, vy:(y - H()*0.85)/20, t:0, life:20, good:perfect});
-    const base = perfect ? 10 : 5;
-    state.score += base*state.combo;
-    state.combo += (perfect?1:0);
-    state.comboT = 1.8;
-    if(state.sfxOn){ sfxHit.currentTime=0; sfxHit.play(); }
-    updateHUD();
-  }
-
-  canvas.addEventListener('pointerdown', (e)=>{ e.preventDefault(); tap(); }, { passive:false });
-
-  // Buttons
-  btn('btn-play').onclick = ()=>{ unlockAudio(); ovStart.classList.add('hidden'); reset(); };
-  btn('btn-how').onclick = ()=> ovHow.classList.remove('hidden');
-  btn('btn-how-back').onclick = ()=> ovHow.classList.add('hidden');
-  btn('btn-pause').onclick = ()=>{ if(!state.running) return; state.paused=true; ovPause.classList.remove('hidden'); };
-  btn('btn-resume').onclick = ()=>{ state.paused=false; ovPause.classList.add('hidden'); };
-  btn('btn-restart').onclick = ()=>{ ovPause.classList.add('hidden'); reset(); };
-  btn('btn-replay').onclick = ()=>{ ovOver.classList.add('hidden'); reset(); };
-  function share(){ const text=encodeURIComponent(`J'ai fait ${state.score} sur Tip Toss 💸 Essaie de me battre !`); const url=encodeURIComponent(location.href); window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`,'_blank'); }
-  btn('btn-share').onclick = share; btn('btn-share2').onclick = share;
-  btn('btn-sfx').onclick = ()=>{ state.sfxOn=!state.sfxOn; btn('btn-sfx').textContent = state.sfxOn? '🔊':'🔈'; };
-  btn('btn-music').onclick = ()=>{ state.musicOn=!state.musicOn; btn('btn-music').textContent = state.musicOn? '🎵':'🔇'; if(state.musicOn){ unlockAudio(); } else { bgm.pause(); } };
-
-  function gameOver(){ state.running=false; final.textContent = `Score ${state.score} • Combo x${state.combo}`; ovOver.classList.remove('hidden'); }
-
-  // Drawing helpers
-  function drawSpotlights(){
-    const w=W(), h=H();
-    const g=ctx.createLinearGradient(0,0,0,h*0.8); g.addColorStop(0,'rgba(100,140,255,0.25)'); g.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(w*0.45,0); ctx.lineTo(w*0.65,0); ctx.lineTo(w*0.75,h); ctx.lineTo(w*0.35,h); ctx.closePath(); ctx.fill();
-  }
-  function drawStage(){
-    const w=W(), h=H();
-    ctx.fillStyle='#080a10'; ctx.fillRect(0,h*0.82,w,h*0.18);
-    // front glow
-    const g=ctx.createLinearGradient(0,h*0.82,0,h); g.addColorStop(0,'rgba(34,197,94,0.1)'); g.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=g; ctx.fillRect(0,h*0.82,w,h*0.18);
-  }
-  function drawDancer(dt){
-    // Stylized silhouette dancer (burlesque, no nudity)
-    const w=W(), h=H();
-    state.dancerT += dt;
-    const bx = w*0.58, by = h*0.6;
-    ctx.save();
-    ctx.translate(bx, by);
-    ctx.scale(1,1);
-    ctx.fillStyle='rgba(0,0,0,0.75)';
-    ctx.strokeStyle='rgba(180,220,255,0.35)'; ctx.lineWidth=4;
-    // torso
-    ctx.beginPath(); ctx.moveTo(-20,-80); ctx.quadraticCurveTo(0,-110,20,-80); ctx.quadraticCurveTo(28,-40,0,-20); ctx.quadraticCurveTo(-28,-40,-20,-80); ctx.closePath(); ctx.fill();
-    // head
-    ctx.beginPath(); ctx.arc(0,-120,18,0,Math.PI*2); ctx.fill();
-    // arms (waving)
-    const a = Math.sin(state.dancerT*3)*0.8;
-    ctx.beginPath(); ctx.moveTo(-18,-70); ctx.quadraticCurveTo(-50+a*10,-110, -70+a*20,-80); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(18,-70); ctx.quadraticCurveTo(50-a*10,-110, 70-a*20,-80); ctx.stroke();
-    // legs (step)
-    ctx.beginPath(); ctx.moveTo(-8,0); ctx.quadraticCurveTo(-18,40*Math.sin(state.dancerT*2), -4,60); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(8,0); ctx.quadraticCurveTo(18,40*Math.cos(state.dancerT*2), 4,60); ctx.stroke();
-    // skirt silhouette
-    ctx.beginPath(); ctx.moveTo(-40,-20); ctx.quadraticCurveTo(0,10,40,-20); ctx.lineTo(28,10); ctx.quadraticCurveTo(0,28,-28,10); ctx.closePath(); ctx.fill();
-    ctx.restore();
-  }
-  function drawBills(dt){
-    for(let i=state.bills.length-1;i>=0;i--){ const b=state.bills[i]; b.t+=dt; b.x+=b.vx; b.y+=b.vy; b.vy*=0.98; 
-      // bill sprite
-      ctx.save(); ctx.translate(b.x,b.y); ctx.rotate(0.1*Math.sin(b.t*8));
-      ctx.fillStyle = b.good? '#b1ffce' : '#c7ffd6';
-      ctx.strokeStyle = '#0a6'; ctx.lineWidth=2; ctx.fillRect(-24,-12,48,24); ctx.strokeRect(-24,-12,48,24);
-      ctx.fillStyle='#0a6'; ctx.beginPath(); ctx.arc(0,0,6,0,Math.PI*2); ctx.fill();
-      ctx.restore();
-      if(b.t> b.life) state.bills.splice(i,1);
+  function updateUI(){
+    bal.textContent = fmt(state.balance) + " ETH";
+    house.textContent = "Bankroll (fake): " + fmt(state.house) + " ETH";
+    stakeDisplay.textContent = fmt(Number(stakeInput.value || 0)) + " ETH";
+    if(!state.connected){
+      addrTag.style.display = "none";
+      connectBtn.style.display = "inline-flex";
+    }else{
+      addrTag.style.display = "inline-flex";
+      connectBtn.style.display = "none";
     }
   }
-  function drawDoor(dt){
-    const w=W(), h=H();
-    state.door.cd -= dt; if(state.door.cd<=0 && !state.door.open){
-      state.door.open=true; state.door.t=0; state.door.cd = 3+Math.random()*4; if(state.sfxOn){ sfxDoor.currentTime=0; sfxDoor.play(); }
-    }
-    if(state.door.open){ state.door.t += dt; if(state.door.t>1.2){ state.door.open=false; state.door.t=0; }
-    }
-    // draw glowing door at left
-    const openAmt = state.door.open? Math.min(1, state.door.t/0.2) : 0;
-    ctx.save();
-    ctx.translate(w*0.07, h*0.55);
-    ctx.fillStyle = '#111'; ctx.fillRect(-30,-100,60,200);
-    // slit of light
-    ctx.globalCompositeOperation='lighter';
-    const grad=ctx.createLinearGradient(-5,-80,5,80); grad.addColorStop(0,'rgba(255,240,150,'+(0.3+0.4*openAmt)+')'); grad.addColorStop(1,'rgba(255,200,80,0)');
-    ctx.fillStyle=grad; ctx.fillRect(-5,-90,10,180);
-    ctx.restore();
-  }
-  function drawBeat(dt){
-    state.beat = (state.beat + dt*0.6) % 1; // loop 1s~
-    const w=W(), h=H();
-    const r = 70 * (1 - state.beat);
-    ctx.save();
-    ctx.translate(w*0.28, h*0.86);
-    ctx.strokeStyle='rgba(180,255,220,0.8)'; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.stroke();
-    ctx.restore();
+  function setToast(msg, cls=""){ toast.className = "toast " + cls; toast.textContent = msg; }
+
+  function mockAddress(){
+    const r = crypto.getRandomValues(new Uint8Array(20));
+    return "0x"+[...r].map(b=>b.toString(16).padStart(2,"0")).join("");
   }
 
-  // Main loop
-  let prev=0; function tick(ts){ const t=ts*0.001; const dt=Math.min(0.033, prev? t-prev : 0.016); prev=t;
-    if(state.running && !state.paused){
-      // decay combo timer
-      if(state.comboT>0){ state.comboT-=dt; if(state.comboT<=0){ state.combo=1; comboEl.textContent='Combo x1'; } }
-      // draw
-      ctx.clearRect(0,0,W(),H());
-      drawSpotlights(); drawStage(); drawDancer(dt); drawBills(dt); drawDoor(dt); drawBeat(dt);
-    }
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
+  // quick stake buttons
+  document.querySelectorAll('[data-q]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const t = btn.getAttribute('data-q');
+      let v = Number(stakeInput.value||0);
+      if(t==="min") v = state.min;
+      if(t==="x2") v = Math.min(state.max, v*2 || state.min*2);
+      if(t==="max") v = state.max;
+      stakeInput.value = v.toFixed(4);
+      updateUI();
+    })
+  });
 
-  // Share
-  function share(){ const text=encodeURIComponent(`J'ai fait ${state.score} sur Tip Toss 💸 Essaie de me battre !`); const url=encodeURIComponent(location.href); window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`,'_blank'); }
-  document.getElementById('btn-share').onclick = share; document.getElementById('btn-share2').onclick = share;
+  connectBtn.addEventListener('click', ()=>{
+    state.connected = true;
+    state.addr = mockAddress();
+    addrTag.textContent = state.addr.slice(0,6)+"…"+state.addr.slice(-4);
+    setToast("Wallet connecté (simulation).", "good");
+    updateUI();
+  });
+
+  addFunds.addEventListener('click', ()=>{
+    state.balance += 0.05;
+    state.house -= 0.05;
+    setToast("Rechargé +0.05 (simulation).", "good");
+    updateUI();
+  });
+  subFunds.addEventListener('click', ()=>{
+    const can = Math.min(0.05, state.balance);
+    state.balance -= can;
+    state.house += can;
+    setToast("Retiré -"+fmt(can)+" (simulation).", "warn");
+    updateUI();
+  });
+
+  stakeInput.addEventListener('input', ()=> updateUI());
+
+  // ================== GAME LOGIC ==================
+  function animateCursor(ms=1800){
+    return new Promise(resolve=>{
+      const start = performance.now();
+      function step(t){
+        const p = Math.min(1, (t-start)/ms);
+        // ease in-out
+        const e = 0.5 - Math.cos(Math.PI*p)/2;
+        const x = 6 + e*88; // 6% to 94% for inset margins
+        cursor.style.setProperty("--x", x+"%");
+        if(p<1) requestAnimationFrame(step); else resolve();
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  function outcomeFromRand(randFloat){
+    // 0-0.45 red, 0.45-0.55 yellow, 0.55-1 green
+    if(randFloat < 0.45) return "red";
+    if(randFloat < 0.55) return "yellow";
+    return "green";
+  }
+
+  function outcomeToText(o){
+    return o==="green" ? "VERT x2" : o==="yellow" ? "JAUNE x1" : "ROUGE x0";
+  }
+
+  async function play(){
+    if(!state.connected){ setToast("Connecte d’abord le wallet (simulation).","warn"); return; }
+    if(state.playing) return;
+    const stake = Number(stakeInput.value || 0);
+    if(!(stake>=state.min && stake<=state.max)){ setToast(`Mise invalide (min ${state.min}, max ${state.max}).`,"bad"); return; }
+    if(stake > state.balance){ setToast("Solde insuffisant.","bad"); return; }
+
+    // lock UI
+    state.playing = true; playBtn.disabled = true; stakeInput.disabled = true;
+    setToast(""); ticker.textContent = "Pari engagé… animation en cours";
+
+    // Fake "commit": current epoch seed
+    const epoch = state.epochSeed || "seed";
+    const userSalt = short(await sha256_hex(String(Math.random())));
+    // Move zones visually a bit (cosmetic)
+    const rShift = (Math.random()*10-5); // -5%..+5%
+    const yShift = (Math.random()*4-2);  // -2%..+2%
+    const gShift = -(rShift+yShift);     // keep total ~100
+    bar.style.background = `linear-gradient(90deg,
+      var(--red) 0 ${44+rShift}%,
+      var(--yellow) ${44+rShift}% ${56+rShift+yShift}%,
+      var(--green) ${56+rShift+yShift}% 100%)`;
+
+    // Deduct stake now
+    state.balance -= stake;
+    state.house += stake;
+    updateUI();
+
+    // Animate cursor then "reveal"
+    await animateCursor(1800 + Math.random()*600);
+    ticker.textContent = "Révélation…";
+
+    // Pseudo reveal: derive randomness from epoch + salt
+    const hash = await sha256_hex(epoch + "|" + userSalt);
+    // convert hex -> float [0,1)
+    const rand = parseInt(hash.slice(0,12),16) / 0xFFFFFFFFFFFF; // 48 bits
+    const res = outcomeFromRand(rand);
+
+    // Payout
+    let payout = 0;
+    if(res==="green"){ payout = stake*2; }
+    else if(res==="yellow"){ payout = stake; }
+    // update balances
+    state.house -= payout;
+    state.balance += payout;
+
+    // Visual feedback
+    const cls = res==="green" ? "good" : res==="yellow" ? "warn" : "bad";
+    setToast(`Résultat: ${outcomeToText(res)} • hash=${short(hash)} • salt=${userSalt}`, cls);
+
+    // History item
+    addHistory({
+      time: new Date().toLocaleTimeString(),
+      stake, res, payout,
+      epoch: short(epoch), hash: short(hash)
+    });
+
+    // Reset UI
+    playBtn.disabled = false; stakeInput.disabled = false; state.playing = false;
+    ticker.textContent = "Prêt";
+    // Safety: circuit breaker (demo)
+    if(state.house < 0.2){
+      setToast("Circuit-breaker: bankroll basse. (demo)", "warn");
+    }
+  }
+
+  function addHistory(it){
+    const div = document.createElement('div');
+    div.className = "item";
+    div.innerHTML = `
+      <div>
+        <div class="mono">${it.time}</div>
+        <div class="muted">epoch ${it.epoch} • rand ${it.hash}</div>
+      </div>
+      <div class="right">
+        <div>${it.res==="green" ? "Gain" : it.res==="yellow" ? "Remboursé" : "Perdu"}</div>
+        <div class="mono ${it.res==="green"?"good":it.res==="yellow"?"warn":"bad"}">
+          ${it.res==="green" ? "+"+fmt(it.payout - it.stake) :
+            it.res==="yellow" ? "+0.0000" : "-"+fmt(it.stake)}
+          ETH
+        </div>
+      </div>`;
+    history.prepend(div);
+    // keep last 20
+    while(history.children.length>20) history.removeChild(history.lastChild);
+  }
+
+  // Bind
+  $("#playBtn").addEventListener('click', play);
+
+  // Init
+  newEpochSeed();
+  updateUI();
+  setToast("Prêt. Connecte le wallet simulé, règle la mise et clique Jouer.","");
 })();
-</script></body>
+</script>
+</body>
 </html>
