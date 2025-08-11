@@ -3,66 +3,52 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Crypto Coin Flip — Narwhal vs Pingouin (Demo locale)</title>
+<title>Coin Flip — Narwhal vs Pingouin (Fix)</title>
 <style>
   :root{
     --bg:#0a0f16; --panel:#0f1622; --ink:#e9f2ff; --muted:#9bb0c7;
     --green:#23d18b; --yellow:#ffd166; --red:#ff5c73; --blue:#5da8ff; --line:#1b2a40;
   }
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:radial-gradient(1200px 700px at 70% -10%,#101827 0%,#0a0f16 55%);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
-  .wrap{max-width:1080px;margin:0 auto;padding:20px}
+  html,body{height:100%;margin:0;background:#0a0f16;color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+  .wrap{max-width:980px;margin:0 auto;padding:20px}
   header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
   h1{font-size:18px;margin:0}
   .tag{font-size:12px;color:#a9bed6;border:1px solid #22324a;padding:4px 10px;border-radius:999px}
-  .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
-  @media (max-width:980px){.grid{grid-template-columns:1fr}}
-  .card{background:linear-gradient(180deg,#0f1622,#0c131d);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 30px #0008}
+  .card{background:linear-gradient(180deg,#0f1622,#0c131d);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px #0008}
   .panel{padding:16px}
-  .sep{height:1px;background:#162337}
   .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .grow{flex:1}
   .muted{color:var(--muted);font-size:13px}
   .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
-  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-  .kpi .box{padding:12px;border:1px solid var(--line);border-radius:14px;background:#0b121c}
-  .kpi .val{font-weight:800;font-size:18px}
-  .kpi .lab{font-size:11px;color:#89a0b9}
-  input[type="number"], input[type="text"], input[type="range"], select{
-    width:100%;background:#0e1521;border:1px solid #22324a;border-radius:12px;color:var(--ink);padding:10px;font-size:15px;outline:none
-  }
+  input[type="number"], input[type="range"]{width:100%;background:#0e1521;border:1px solid #22324a;border-radius:12px;color:var(--ink);padding:10px;font-size:15px}
   .btn{background:#101a28;border:1px solid #23324b;color:#dbe7ff;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;transition:.2s}
   .btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px #00000060}
   .btn:disabled{opacity:.6;transform:none;cursor:not-allowed}
   .btn.primary{background:linear-gradient(180deg,#2b66ff,#1e4fe1);border-color:#355df1}
   .btn.green{background:linear-gradient(180deg,#1ec07c,#15a367);border-color:#169966}
-  .btn.red{background:linear-gradient(180deg,#ff5f74,#e44657);border-color:#e04657}
   .btn.yellow{background:linear-gradient(180deg,#ffd166,#f1bb46);color:#0b0b0b;border-color:#f1bb46}
-  .pill{padding:8px 10px;border-radius:999px;background:#0f1624;border:1px solid #22324a}
+  .btn.red{background:linear-gradient(180deg,#ff5f74,#e44657);border-color:#e04657}
   .toast{margin-top:8px;font-size:14px}
   .good{color:#5ef0ad} .warn{color:#ffe08a} .bad{color:#ff8b99}
-  /* ---------- Coin animation ---------- */
-  .stage{height:280px;display:grid;place-items:center;position:relative}
+
+  /* ----------- coin ----------- */
+  .stage{height:260px;display:grid;place-items:center;position:relative}
   .coin{
     width:160px;height:160px;position:relative;transform-style:preserve-3d;
-    transition:transform 1.1s cubic-bezier(.2,.6,.2,1);
     filter:drop-shadow(0 10px 30px rgba(0,0,0,.45));
   }
   .face{
     position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;
     background:radial-gradient(circle at 30% 30%, #203a63 0, #132338 40%, #0d1726 60%);
     border:2px solid #2a3e60; box-shadow:inset 0 0 40px #0008, 0 0 0 3px #0b1524;
-    backface-visibility:hidden;
+    backface-visibility:hidden; /* IMPORTANT: cache la face opposée */
   }
-  .back{transform:rotateY(180deg)}
-  .ring{position:absolute;inset:-6px;border-radius:50%;border:6px solid #91a8ff22}
-  .visor{position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 0 2px #88a0ff22}
-  .coin.flip{transform:rotateY(1080deg)} /* 3 tours */
-  .pick{display:flex;gap:8px}
-  .pick .opt{padding:8px 12px;border:1px solid #24344e;border-radius:12px;background:#0f1724;cursor:pointer}
+  .back{transform:rotateY(180deg)} /* Pingouin est au dos */
+  .pick{display:flex;gap:8px;justify-content:center}
+  .opt{padding:8px 12px;border:1px solid #24344e;border-radius:12px;background:#0f1724;cursor:pointer}
   .opt.active{outline:2px solid #476dff}
-  .small{font-size:12px;color:#8faccc}
-  /* History */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:860px){.grid{grid-template-columns:1fr}}
   .list{display:grid;gap:8px}
   .item{display:flex;justify-content:space-between;gap:8px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#0c121b}
   .right{text-align:right}
@@ -72,48 +58,44 @@
 <div class="wrap">
   <header>
     <div>
-      <h1>Coin Flip — Narwhal vs Pingouin (Démo locale)</h1>
-      <div class="muted">Simulation hors-chaîne pour tester l’UX et les odds. Vraie dApp ensuite.</div>
+      <h1>Coin Flip — Narwhal vs Pingouin (Démo locale, FIX)</h1>
+      <div class="muted">Narwhal = face AVANT • Pingouin = face ARRIÈRE • Flip 3D garanti</div>
     </div>
-    <div class="row">
-      <span id="addr" class="tag" style="display:none;"></span>
-      <button id="connect" class="btn">Connect Wallet (fake)</button>
-    </div>
+    <span id="addr" class="tag">Wallet (fake)</span>
   </header>
 
   <div class="grid">
-    <!-- LEFT: GAME -->
     <div class="card">
       <div class="panel">
-        <div class="kpi">
-          <div class="box"><div class="lab">Solde joueur</div><div id="userBal" class="val mono">0.0000 ETH</div></div>
-          <div class="box"><div class="lab">Bankroll House</div><div id="houseBal" class="val mono">1.0000 ETH</div></div>
-          <div class="box"><div class="lab">Mise</div><div id="stakeShow" class="val mono">0.0010</div></div>
-          <div class="box"><div class="lab">Epoch Seed</div><div id="epochShow" class="val mono"></div></div>
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div class="muted">Solde joueur</div>
+            <div id="userBal" class="mono" style="font-size:18px;font-weight:800">0.1000 ETH</div>
+          </div>
+          <div>
+            <div class="muted">Bankroll House</div>
+            <div id="houseBal" class="mono" style="font-size:18px;font-weight:800">1.0000 ETH</div>
+          </div>
         </div>
       </div>
-      <div class="sep"></div>
       <div class="panel">
         <div class="stage">
-          <div class="coin" id="coin">
-            <div class="face front">
-              <div class="ring"></div><div class="visor"></div>
-              <!-- Narwhal SVG -->
-              <svg width="110" height="110" viewBox="0 0 110 110" fill="none">
+          <div class="coin" id="coin" style="transform:rotateY(0deg)">
+            <!-- FRONT = Narwhal -->
+            <div class="face front" aria-label="Narwhal">
+              <svg width="120" height="120" viewBox="0 0 110 110" fill="none">
                 <circle cx="55" cy="55" r="50" fill="#0f2036"/>
                 <path d="M20 60c15 20 55 22 70-2-8-6-18-8-30-8-13 0-27 3-40 10z" fill="#7cc7ff"/>
                 <ellipse cx="60" cy="58" rx="12" ry="9" fill="#a8e4ff"/>
                 <circle cx="69" cy="56" r="3.5" fill="#071423"/>
                 <path d="M78 40l18-10-16 14" stroke="#ffd166" stroke-width="3" stroke-linecap="round"/>
                 <path d="M42 74c10 6 26 6 36 0" stroke="#d6f4ff" stroke-width="3" stroke-linecap="round"/>
-                <path d="M45 54c3 3 6 3 9 0" stroke="#d6f4ff" stroke-width="2" stroke-linecap="round"/>
                 <text x="55" y="18" text-anchor="middle" fill="#9fc1ff" font-size="12" font-weight="700">NARWHAL</text>
               </svg>
             </div>
-            <div class="face back">
-              <div class="ring"></div><div class="visor"></div>
-              <!-- Penguin SVG -->
-              <svg width="110" height="110" viewBox="0 0 110 110" fill="none">
+            <!-- BACK = Pingouin -->
+            <div class="face back" aria-label="Pingouin">
+              <svg width="120" height="120" viewBox="0 0 110 110" fill="none">
                 <circle cx="55" cy="55" r="50" fill="#0f2036"/>
                 <path d="M55 28c-12 0-22 14-22 28 0 16 12 25 22 25s22-9 22-25c0-14-10-28-22-28z" fill="#101826"/>
                 <ellipse cx="55" cy="62" rx="16" ry="18" fill="#fff5e6"/>
@@ -127,46 +109,30 @@
           </div>
         </div>
 
-        <div class="row" style="justify-content:center;gap:12px;margin-top:-8px">
-          <div class="pick">
-            <div class="opt active" data-side="narwhal">Miser Narwhal</div>
-            <div class="opt" data-side="penguin">Miser Pingouin</div>
-          </div>
-          <div class="small">Face gagnante = ta sélection</div>
+        <div class="pick" style="margin-top:-6px">
+          <div class="opt active" data-side="narwhal">Miser Narwhal</div>
+          <div class="opt" data-side="penguin">Miser Pingouin</div>
         </div>
 
         <div class="row" style="margin-top:12px">
-          <div class="grow">
-            <div class="muted" style="margin-bottom:6px">Mise (min 0.001 / max 0.01)</div>
+          <div style="flex:1 1 180px">
+            <div class="muted">Mise (min 0.001 / max 0.01)</div>
             <input id="stake" type="number" step="0.0001" min="0.001" max="0.01" value="0.001"/>
           </div>
-          <div class="row">
-            <button class="btn pill" data-q="min">Min</button>
-            <button class="btn pill" data-q="x2">x2</button>
-            <button class="btn pill" data-q="max">Max</button>
-          </div>
-        </div>
-
-        <div class="row" style="margin-top:8px">
-          <div class="grow">
-            <div class="muted">Probabilité Narwhal (%)</div>
+          <div style="flex:1 1 180px">
+            <div class="muted">Proba Narwhal (%)</div>
             <input id="pNar" type="range" min="10" max="90" value="50"/>
           </div>
-          <div class="grow">
+          <div style="flex:1 1 180px">
             <div class="muted">House Edge (%)</div>
             <input id="edge" type="range" min="0" max="5" step="0.1" value="1.5"/>
           </div>
         </div>
 
-        <div class="row" style="margin-top:4px">
-          <div class="grow">
-            <div class="muted">Payout potentiel si tu gagnes (x)</div>
-            <div id="payoutX" class="mono" style="font-size:16px;font-weight:700">1.9700x</div>
-          </div>
-          <div class="grow">
-            <div class="muted">Proba de gain sélectionnée</div>
-            <div id="pWin" class="mono" style="font-size:16px;font-weight:700">50.00%</div>
-          </div>
+        <div class="row" style="margin-top:6px">
+          <div class="muted">Payout (x): <span id="payoutX" class="mono" style="font-weight:800">1.9700x</span></div>
+          <div class="muted">p(Gain) : <span id="pWin" class="mono" style="font-weight:800">50.00%</span></div>
+          <div class="muted">Pick: <span id="pickNow" class="mono">Narwhal</span></div>
         </div>
 
         <div class="row" style="margin-top:12px">
@@ -174,30 +140,19 @@
           <button id="deposit" class="btn green">Dépôt +0.05</button>
           <button id="withdraw" class="btn yellow">Retrait 0.01</button>
           <button id="cashout" class="btn red">Retirer TOUT</button>
-          <span class="muted">Résolution ~1.2s (demo)</span>
         </div>
         <div id="toast" class="toast"></div>
       </div>
     </div>
 
-    <!-- RIGHT: HISTORY / INFO -->
     <div class="card">
       <div class="panel">
-        <div class="row" style="justify-content:space-between">
-          <h2 style="margin:0;font-size:16px">Historique</h2>
-          <span id="withdrawn" class="tag">Retiré: 0.0000</span>
-        </div>
-        <div id="history" class="list" style="margin-top:10px"></div>
+        <h3 style="margin:0 0 6px 0;font-size:15px">Historique</h3>
+        <div id="history" class="list"></div>
       </div>
-      <div class="sep"></div>
-      <div class="panel">
-        <h3 style="margin:0 0 6px 0;font-size:15px">Fairness (démo)</h3>
-        <div class="muted">
-          • <span class="mono">epochSeed</span> local change toutes les 10 s.<br/>
-          • À chaque pari: on dérive un aléa via <span class="mono">SHA-256(epochSeed + userSalt)</span>.<br/>
-          • Proba Narwhal = curseur; proba Pingouin = 100% − Narwhal.<br/>
-          • Pour garder le <b>house edge</b> constant, le payout est calculé: <span class="mono">payout = (1 − edge) / p_win</span>.
-        </div>
+      <div class="panel" style="border-top:1px solid var(--line)">
+        <h3 style="margin:0 0 6px 0;font-size:15px">Debug</h3>
+        <div class="muted mono" id="debug">—</div>
       </div>
     </div>
   </div>
@@ -205,178 +160,127 @@
 
 <script>
 (function(){
-  const $ = (s)=>document.querySelector(s);
-  const fmt = (n)=> (Math.round(n*10000)/10000).toFixed(4);
-  const short = (hex)=> hex.slice(0,6)+"…"+hex.slice(-4);
-  const sleep = (ms)=> new Promise(r=>setTimeout(r,ms));
+  const $ = s => document.querySelector(s);
+  const fmt = n => (Math.round(n*10000)/10000).toFixed(4);
 
-  async function sha256_hex(str){
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-  }
-
-  // ---------- State ----------
+  // ---- state ----
   const S = {
-    connected:false,
-    addr:null,
-    user:0.10,           // solde joueur
-    house:1.00,          // bankroll
-    withdrawn:0.00,      // total retiré
+    user:0.10, house:1.00, withdrawn:0,
     min:0.001, max:0.01,
-    pick:'narwhal',
-    pNar:0.50,           // proba Narwhal (0..1)
-    edge:0.015,          // house edge (0..0.05)
-    epochSeed:null,
-    epochAt:0,
-    epochDur:10_000,
+    pick:'narwhal',      // 'narwhal' (front) or 'penguin' (back)
+    pNar:0.50,           // probability Narwhal
+    edge:0.015,          // house edge
+    angle:0,             // 0 = front (narwhal), 180 = back (penguin)
     flipping:false
   };
 
-  // ---------- Seed rotation ----------
-  async function newEpoch(){
-    const bytes = crypto.getRandomValues(new Uint8Array(32));
-    S.epochSeed = [...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');
-    S.epochAt = Date.now();
-    $('#epochShow').textContent = short(S.epochSeed);
-  }
-  setInterval(newEpoch, S.epochDur);
+  // ---- els ----
+  const coin = $('#coin');
+  const userBal = $('#userBal'), houseBal = $('#houseBal');
+  const stake = $('#stake'), pNar = $('#pNar'), edge = $('#edge');
+  const payoutX = $('#payoutX'), pWin = $('#pWin'), pickNow = $('#pickNow');
+  const play = $('#play'), deposit = $('#deposit'), withdraw = $('#withdraw'), cashout = $('#cashout');
+  const toast = $('#toast'), hist = $('#history'), debugEl = $('#debug');
 
-  // ---------- UI refs ----------
-  const addr = $('#addr'), connect = $('#connect');
-  const userBal = $('#userBal'), houseBal = $('#houseBal'), stakeShow = $('#stakeShow');
-  const stake = $('#stake'), pNar = $('#pNar'), edge = $('#edge'), payoutX = $('#payoutX'), pWin = $('#pWin');
-  const play = $('#play'), deposit = $('#deposit'), withdraw = $('#withdraw'), cashout = $('#cashout'), toast = $('#toast');
-  const coin = $('#coin'), hist = $('#history'), withdrawn = $('#withdrawn');
-
-  // pick side buttons
+  // pick UI
   document.querySelectorAll('.opt').forEach(el=>{
     el.addEventListener('click', ()=>{
       document.querySelectorAll('.opt').forEach(o=>o.classList.remove('active'));
       el.classList.add('active');
       S.pick = el.getAttribute('data-side');
-      recalcPayout();
+      pickNow.textContent = S.pick === 'narwhal' ? 'Narwhal' : 'Pingouin';
+      recalc();
     });
   });
 
-  // quick amount
-  document.querySelectorAll('[data-q]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const t = btn.getAttribute('data-q');
-      let v = Number(stake.value||0);
-      if(t==='min') v = S.min;
-      if(t==='x2') v = Math.min(S.max, (v||S.min)*2);
-      if(t==='max') v = S.max;
-      stake.value = v.toFixed(4); stakeShow.textContent = v.toFixed(4);
-      recalcPayout();
-    });
-  });
+  // inputs
+  stake.addEventListener('input', recalc);
+  pNar.addEventListener('input', ()=>{ S.pNar = Number(pNar.value)/100; recalc(); });
+  edge.addEventListener('input', ()=>{ S.edge = Number(edge.value)/100; recalc(); });
 
-  stake.addEventListener('input', ()=>{ stakeShow.textContent = Number(stake.value||0).toFixed(4); recalcPayout(); });
-  pNar.addEventListener('input', ()=>{ S.pNar = Number(pNar.value)/100; recalcPayout(); });
-  edge.addEventListener('input', ()=>{ S.edge = Number(edge.value)/100; recalcPayout(); });
+  // money
+  deposit.addEventListener('click', ()=>{ S.user+=0.05; S.house-=0.05; refresh(); });
+  withdraw.addEventListener('click', ()=>{ const a=Math.min(0.01,S.user); S.user-=a; S.withdrawn+=a; refresh(); });
+  cashout.addEventListener('click', ()=>{ const a=S.user; S.user=0; S.withdrawn+=a; refresh(); });
 
-  connect.addEventListener('click', ()=>{
-    if(S.connected) return;
-    S.connected = true;
-    S.addr = "0x"+[...crypto.getRandomValues(new Uint8Array(20))].map(b=>b.toString(16).padStart(2,'0')).join('');
-    addr.textContent = S.addr.slice(0,6)+"…"+S.addr.slice(-4);
-    addr.style.display = 'inline-flex';
-    connect.style.display = 'none';
-    setToast("Wallet connecté (simulation).","good");
+  function EV_payoutMultiple(p, edge){ return (1-edge)/p; } // m = (1−edge)/p
+  function currentPWin(){ return S.pick==='narwhal' ? S.pNar : 1-S.pNar; }
+
+  function recalc(){
+    const p = currentPWin();
+    const m = EV_payoutMultiple(Math.min(0.9999,Math.max(0.0001,p)), S.edge);
+    payoutX.textContent = m.toFixed(4)+'x';
+    pWin.textContent = (p*100).toFixed(2)+'%';
     refresh();
-  });
-
-  deposit.addEventListener('click', ()=>{
-    S.user += 0.05; S.house -= 0.05;
-    setToast("Dépôt +0.05 (simulation).","good"); refresh();
-  });
-  withdraw.addEventListener('click', ()=>{
-    const amt = Math.min(0.01, S.user);
-    S.user -= amt; S.withdrawn += amt;
-    setToast("Retrait "+fmt(amt)+" (simulation).","warn"); refresh();
-  });
-  cashout.addEventListener('click', ()=>{
-    const amt = S.user; S.user = 0; S.withdrawn += amt;
-    setToast("Retrait total "+fmt(amt)+" (simulation).","warn"); refresh();
-  });
-
+  }
   function refresh(){
     userBal.textContent = fmt(S.user)+" ETH";
     houseBal.textContent = fmt(S.house)+" ETH";
-    withdrawn.textContent = "Retiré: "+fmt(S.withdrawn);
   }
-  function setToast(msg, cls=''){ toast.className = "toast "+cls; toast.textContent = msg; }
+  function setToast(msg, cls=''){ toast.className = 'toast '+cls; toast.textContent = msg; }
+  function dbg(msg){ debugEl.textContent = msg; }
 
-  function currentPWin(){
-    // prob of chosen side
-    return S.pick==='narwhal' ? S.pNar : (1 - S.pNar);
-  }
-  function currentPayoutMultiple(){
-    // keep house edge constant: EV = (1 - edge) => p*m = 1 - edge => m = (1 - edge)/p
-    const p = Math.max(0.0001, Math.min(0.9999, currentPWin()));
-    return (1 - S.edge) / p;
-  }
-  function recalcPayout(){
-    const p = currentPWin();
-    const m = currentPayoutMultiple();
-    payoutX.textContent = m.toFixed(4)+"x";
-    pWin.textContent = (p*100).toFixed(2)+"%";
+  // rotation robust via Web Animations API
+  async function spinTo(side){
+    const target = (side==='narwhal') ? 0 : 180; // 0=front, 180=back
+    const start = S.angle;
+    const end = target + 1080; // +3 tours
+    const anim = coin.animate([
+      { transform: `rotateY(${start}deg)` },
+      { transform: `rotateY(${end}deg)` }
+    ], { duration: 1100, easing: 'cubic-bezier(.2,.6,.2,1)' });
+    await anim.finished;
+    S.angle = target;
+    coin.style.transform = `rotateY(${S.angle}deg)`; // état final figé
   }
 
-  // flip animation helper
-  async function animateFlip(winNarwhal){
-    // set end orientation: front = Narwhal. If winNarwhal=true, land front; else back.
-    coin.classList.remove('flip'); // reset
-    void coin.offsetWidth;         // reflow
-    coin.classList.add('flip');    // animate
-    await sleep(1100);
-    // rotate to final static face
-    coin.style.transform = winNarwhal ? "rotateY(0deg)" : "rotateY(180deg)";
+  // RNG simple
+  function randFloat(){
+    // meilleur que Math.random() pour la démo : on mixe temps + random
+    const x = (Math.random() + (performance.now()%1e3)/1e3) % 1;
+    return x;
   }
 
   async function playOnce(){
-    if(!S.connected){ setToast("Connecte d’abord le wallet (simulation).","warn"); return; }
     if(S.flipping) return;
     const amt = Number(stake.value||0);
-    if(!(amt>=S.min && amt<=S.max)){ setToast(`Mise invalide (min ${S.min}, max ${S.max}).`,"bad"); return; }
-    if(amt > S.user){ setToast("Solde insuffisant.","bad"); return; }
+    if(!(amt>=S.min && amt<=S.max)){ setToast(`Mise invalide (min ${S.min}, max ${S.max}).`,'bad'); return; }
+    if(amt > S.user){ setToast('Solde insuffisant.','bad'); return; }
 
-    S.flipping = true; play.disabled = true; stake.disabled = true;
-    setToast("");
+    S.flipping = true; play.disabled = true; stake.disabled = true; setToast('');
 
-    // commit: freeze epoch & user salt
-    const epoch = S.epochSeed || "seed";
-    const salt = (await sha256_hex(String(Math.random()))).slice(0,12);
-
-    // debit stake
+    // débiter la mise
     S.user -= amt; S.house += amt; refresh();
 
-    // flip anim
-    const h = await sha256_hex(epoch + "|" + salt);
-    // Map hex -> [0,1)
-    const r = parseInt(h.slice(0,12),16) / 0xFFFFFFFFFFFF;
-    // Decide face by configured probability
-    const winIsNar = r < S.pNar;
-    const outcomeSide = winIsNar ? 'narwhal' : 'penguin';
+    // tirer l’issue
+    const r = randFloat();
+    const outcome = (r < S.pNar) ? 'narwhal' : 'penguin';
+    dbg(`r=${r.toFixed(6)} • outcome=${outcome} • pick=${S.pick}`);
 
-    await animateFlip(winIsNar);
+    // animer vers la bonne face (narwhal=front(0), penguin=back(180))
+    await spinTo(outcome);
 
-    // win if player's pick == outcome
-    const isWin = (S.pick === outcomeSide);
-    const mult = currentPayoutMultiple();
-    const payout = isWin ? amt * mult : 0;
+    // gagner si le choix = outcome
+    const win = (S.pick === outcome);
+    const p = currentPWin();
+    const m = EV_payoutMultiple(Math.min(0.9999,Math.max(0.0001,p)), S.edge);
+    const payout = win ? amt*m : 0;
 
-    // settle
+    // régler
     S.house -= payout; S.user += payout; refresh();
 
-    const resTxt = isWin ? `GAGNÉ +${fmt(payout-amt)} ETH (payout ${mult.toFixed(4)}x)` : `PERDU -${fmt(amt)} ETH`;
-    setToast(`Résultat: ${outcomeSide.toUpperCase()} • ${resTxt} • rand=${h.slice(0,8)}`, isWin ? "good" : "bad");
+    // feedback
+    setToast(
+      win
+        ? `GAGNÉ +${fmt(payout-amt)} ETH (payout ${m.toFixed(4)}x)`
+        : `PERDU -${fmt(amt)} ETH`,
+      win ? 'good' : 'bad'
+    );
 
+    // historique
     addHistory({
-      time: new Date().toLocaleTimeString(),
-      pick: S.pick, outcome: outcomeSide,
-      amt, payout, mult, edge:S.edge, pNar:S.pNar,
-      epoch: epoch, hash: h, salt: salt
+      time:new Date().toLocaleTimeString(),
+      pick:S.pick, outcome, amt, payout, m, p
     });
 
     S.flipping = false; play.disabled = false; stake.disabled = false;
@@ -384,30 +288,29 @@
 
   function addHistory(it){
     const div = document.createElement('div');
-    div.className = "item";
     const won = it.payout>0;
+    div.className='item';
     div.innerHTML = `
       <div>
         <div class="mono">${it.time}</div>
-        <div class="muted">seed ${short(it.epoch)} • salt ${it.salt} • rand ${short(it.hash)}</div>
-        <div class="muted">p(Narwhal) ${(it.pNar*100).toFixed(1)}% • edge ${(it.edge*100).toFixed(1)}% • payout ${it.mult.toFixed(4)}x</div>
+        <div class="muted">Pick: ${it.pick} • Outcome: ${it.outcome}</div>
+        <div class="muted">p=${(it.p*100).toFixed(2)}% • payout=${it.m.toFixed(4)}x</div>
       </div>
       <div class="right">
-        <div>${won ? "Gain" : "Perte"} (${it.outcome})</div>
-        <div class="mono ${won?"good":"bad"}">
-          ${won ? "+"+fmt(it.payout - it.amt) : "-"+fmt(it.amt)} ETH
+        <div>${won?'Gain':'Perte'}</div>
+        <div class="mono ${won?'good':'bad'}">
+          ${won? '+'+fmt(it.payout - it.amt): '-'+fmt(it.amt)} ETH
         </div>
       </div>`;
-    hist.prepend(div);
-    while(hist.children.length>25) hist.removeChild(hist.lastChild);
+    $('#history').prepend(div);
+    const list = $('#history');
+    while(list.children.length>25) list.removeChild(list.lastChild);
   }
 
-  // Bind
   $('#play').addEventListener('click', playOnce);
 
-  // Init
-  newEpoch(); refresh(); recalcPayout();
-  setToast("Prêt. Choisis ta face, règle ta mise et clique “Lancer le flip”.","");
+  // init
+  recalc(); refresh();
 })();
 </script>
 </body>
