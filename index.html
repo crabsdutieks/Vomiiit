@@ -7,34 +7,40 @@
 <meta name="theme-color" content="#6a00ff" />
 <style>
   :root{
-    --violet:#6a00ff; --night:#001f4d; --teal:#16c7be; --gold:#ffd75e; --glass:rgba(255,255,255,.08);
-    --glassB: rgba(0,0,0,.35); --border: rgba(255,255,255,.16);
+    --violet:#6a00ff; --night:#001f4d; --teal:#16c7be; --gold:#ffd75e;
+    --glassA:rgba(255,255,255,.10); --glassB:rgba(0,0,0,.38); --border:rgba(255,255,255,.16);
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;background:linear-gradient(180deg,var(--violet),var(--night));color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+  body{margin:0;background:radial-gradient(1200px 800px at 20% -10%, #7f45ff 0%, #3b2a98 35%, #001f4d 80%);color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
   #canvas{display:block;width:100vw;height:100vh;touch-action:manipulation}
   #fx{position:fixed;inset:0;pointer-events:none;z-index:6}
 
   /* HUD */
-  #hud{position:fixed;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom) 14px}
-  .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-  .pill{background:var(--glassB);border:1px solid var(--border);padding:8px 12px;border-radius:12px;backdrop-filter:blur(6px);font-weight:800;letter-spacing:.3px}
-  .btn{pointer-events:auto;user-select:none;cursor:pointer;background:var(--teal);color:#081018;border:none;font-weight:900;padding:10px 14px;border-radius:12px;box-shadow:0 6px 0 rgba(0,0,0,.35);transition:transform .06s ease,filter .2s ease}
-  .btn:active{transform:translateY(2px);box-shadow:0 4px 0 rgba(0,0,0,.35)}
+  #hud{position:fixed;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom) 16px}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .pill{background:var(--glassB);border:1px solid var(--border);padding:10px 14px;border-radius:14px;backdrop-filter:blur(10px);font-weight:800;letter-spacing:.3px}
+  .btn{pointer-events:auto;user-select:none;cursor:pointer;background:var(--teal);color:#081018;border:none;font-weight:900;padding:12px 16px;border-radius:14px;box-shadow:0 8px 0 rgba(0,0,0,.35);transition:transform .06s ease,filter .2s ease, box-shadow .06s}
+  .btn:active{transform:translateY(2px);box-shadow:0 6px 0 rgba(0,0,0,.35)}
   .btn.alt{background:#fff;color:#111}
   .btn.gold{background:var(--gold);color:#111}
 
   /* Overlays */
-  #overlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.38);backdrop-filter:blur(8px);z-index:5}
+  #overlay{position:fixed;inset:0;display:none;place-items:center;background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.55));backdrop-filter:blur(10px);z-index:8}
   #overlay.show{display:grid}
-  .card{width:min(680px,92vw);background:linear-gradient(180deg,var(--glass),rgba(255,255,255,.05));border:1px solid var(--border);border-radius:18px;padding:24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.45)}
-  h1{margin:.25rem 0 .2rem;font-size:1.8rem;letter-spacing:.3px}
-  p{margin:.35rem 0;opacity:.92}
-  .hint{font-size:.92rem;opacity:.85}
-  .actions{display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap}
-  .bigscore{font-size:2.6rem;font-weight:900;letter-spacing:.5px;margin:.25rem 0 0;text-shadow:0 4px 14px rgba(0,0,0,.4)}
-  .subscore{opacity:.9;margin:.2rem 0 .8rem}
+  .card{width:min(720px,92vw);background:linear-gradient(180deg, var(--glassA), rgba(255,255,255,.05));
+        border:1px solid var(--border);border-radius:22px;padding:26px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+  .title{font-weight:900;font-size:2.1rem;letter-spacing:.4px;margin:.1rem 0 .4rem;text-shadow:0 6px 18px rgba(0,0,0,.4)}
+  .subtitle{opacity:.95;margin:.25rem 0 .75rem}
+  .hint{font-size:.95rem;opacity:.85;margin:.25rem 0 .75rem}
+  .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:.25rem}
+  .section{display:none}
+  .section.show{display:block}
+  .bigscore{font-size:2.6rem;font-weight:900;letter-spacing:.6px;margin:.25rem 0 .2rem;text-shadow:0 8px 24px rgba(0,0,0,.5)}
+  .subscore{opacity:.92}
+
+  /* small helper for icon-ish buttons */
+  .btn.small{padding:10px 12px;border-radius:12px}
 </style>
 </head>
 <body>
@@ -43,43 +49,54 @@
 
 <!-- HUD -->
 <div id="hud">
-  <div class="row" style="padding:10px">
+  <div class="row" style="padding:12px">
     <div class="pill" id="score">Score: 0</div>
-    <div class="row" style="gap:8px">
+    <div class="row" style="gap:10px">
       <div class="pill" id="coins">Coins: 0</div>
       <div class="pill" id="best">Best: 0</div>
-      <button id="muteBtn" class="btn alt" aria-label="Mute">Mute</button>
-      <button id="pauseBtn" class="btn" aria-label="Pause">Pause</button>
+      <button id="muteBtn" class="btn alt small" aria-label="Mute">Mute</button>
+      <button id="pauseBtn" class="btn small" aria-label="Pause">Pause</button>
     </div>
   </div>
-  <div class="row" style="padding:10px">
-    <a class="btn gold" href="/" title="Back to site">← Back</a>
-    <button id="restartBtn" class="btn">Restart</button>
+  <div class="row" style="padding:12px">
+    <a class="btn gold small" href="/" title="Back to site">← Back</a>
+    <button id="restartBtn" class="btn small">Restart</button>
   </div>
 </div>
 
-<!-- Start / How-To / Game Over -->
+<!-- Overlay -->
 <div id="overlay" class="show" role="dialog" aria-modal="true">
-  <div class="card" id="overlayCard">
-    <h1 id="title">$NARPE — Swim & Dodge</h1>
-    <p id="subtitle">Tap / Space / ↑ to swim. Wide lanes, varied patterns, coins to collect. Avoid ice & mines.</p>
-    <p class="hint">Mobile: tap the game area · Desktop: Space or ↑ · Press M to mute</p>
-    <div class="actions" id="startActions">
-      <button id="howBtn" class="btn alt">How to</button>
-      <button id="playBtn" class="btn">Play</button>
+  <div class="card">
+    <div class="title" id="ovTitle">$NARPE — Swim & Dodge</div>
+    <div class="subtitle" id="ovSubtitle">Tap / Space / ↑ to swim. Wide lanes, varied patterns, glowing coins. Avoid ice & naval mines.</div>
+
+    <!-- START -->
+    <div id="ovStart" class="section show">
+      <div class="hint">Mobile: tap the game · Desktop: Space or ↑ · Press M to mute</div>
+      <div class="actions">
+        <button id="howBtn" class="btn alt">How to</button>
+        <button id="playBtn" class="btn">Play</button>
+      </div>
     </div>
-    <div id="howContent" style="display:none;margin-top:8px">
-      <p>• Swim upward with tap/Space/↑. Gravity pulls you down.</p>
-      <p>• Pass through wide gaps between ice/mine hazards to gain points.</p>
-      <p>• Collect coins for +5 points. Game speed increases gradually.</p>
-      <div class="actions"><button id="playBtn2" class="btn">Play</button></div>
+
+    <!-- HOW TO -->
+    <div id="ovHow" class="section">
+      <p>• Tap / Space / ↑ to swim upward. Gravity pulls you down.</p>
+      <p>• Pass through the wide gaps to score. Coins are +5 and easy to grab.</p>
+      <p>• Speed increases gradually — keep your rhythm, not the ceiling.</p>
+      <div class="actions">
+        <button id="backBtn" class="btn alt">Back</button>
+        <button id="playBtn2" class="btn">Play</button>
+      </div>
     </div>
-    <div id="gameOverContent" style="display:none">
+
+    <!-- GAME OVER -->
+    <div id="ovOver" class="section">
       <div class="bigscore" id="finalScore">Score: 0</div>
       <div class="subscore" id="finalMeta">Best: 0 • Coins: 0</div>
-      <div class="actions" id="shareWrap">
+      <div class="actions">
         <button id="shareBtn" class="btn gold">Share score on X</button>
-        <button id="playAgainBtn" class="btn">Play again</button>
+        <button id="againBtn" class="btn">Play again</button>
       </div>
     </div>
   </div>
@@ -87,60 +104,105 @@
 
 <script>
 (()=>{
-/* ---------- Canvas & DPI ---------- */
+/* ===== Canvas & DPI ===== */
 const dpr = Math.max(1, Math.min(2, devicePixelRatio||1));
-const canvas = document.getElementById('canvas'); const ctx = canvas.getContext('2d');
+const cvs = document.getElementById('canvas'); const ctx = cvs.getContext('2d');
 const fx = document.getElementById('fx'); const fxc = fx.getContext('2d');
-function resize(){ canvas.width=Math.floor(innerWidth*dpr); canvas.height=Math.floor(innerHeight*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); fx.width=canvas.width; fx.height=canvas.height; fxc.setTransform(dpr,0,0,dpr,0,0); }
+function resize(){ cvs.width=Math.floor(innerWidth*dpr); cvs.height=Math.floor(innerHeight*dpr); ctx.setTransform(dpr,0,0,dpr,0,0);
+                   fx.width=cvs.width; fx.height=cvs.height; fxc.setTransform(dpr,0,0,dpr,0,0); }
 addEventListener('resize', resize, {passive:true}); resize();
 
-/* ---------- Optional Narpe image ---------- */
+/* ===== Optional sprite ===== */
 const narpeImg = new Image(); let narpeReady=false;
 narpeImg.onload=()=>narpeReady=true; narpeImg.onerror=()=>narpeReady=false;
 narpeImg.src='narpe.png';
 
-/* ---------- Audio ---------- */
+/* ===== Audio ===== */
 let audioCtx, masterGain, muted=false;
-function initAudio(){ if(audioCtx) return; audioCtx=new (window.AudioContext||window.webkitAudioContext)(); masterGain=audioCtx.createGain(); masterGain.gain.value=.7; masterGain.connect(audioCtx.destination); startMusic(); }
-function startMusic(){ const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sine'; g.gain.value=0; o.connect(g).connect(masterGain); o.start(); const notes=[261.63,329.63,392,329.63,293.66,261.63,196,261.63]; let i=0; setInterval(()=>{ if(!audioCtx||muted) return; const t=audioCtx.currentTime; o.frequency.setTargetAtTime(notes[i%notes.length],t,.02); g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.08,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+.35); i++; },420); }
-function sfxCoin(){ if(!audioCtx||muted) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='triangle'; o.frequency.value=900; g.gain.value=0; o.connect(g).connect(masterGain); const t=audioCtx.currentTime; o.start(t); o.frequency.exponentialRampToValueAtTime(1500,t+.08); g.gain.linearRampToValueAtTime(.18,t+.01); g.gain.exponentialRampToValueAtTime(.0001,t+.22); o.stop(t+.24); }
-function sfxLose(){ if(!audioCtx||muted) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sawtooth'; o.frequency.value=420; g.gain.value=0; o.connect(g).connect(masterGain); const t=audioCtx.currentTime; o.start(t); o.frequency.exponentialRampToValueAtTime(120,t+.4); g.gain.linearRampToValueAtTime(.22,t+.01); g.gain.exponentialRampToValueAtTime(0.0001,t+.5); o.stop(t+.52); }
+function initAudio(){ if(audioCtx) return; audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  masterGain=audioCtx.createGain(); masterGain.gain.value=.7; masterGain.connect(audioCtx.destination); startMusic(); }
+function startMusic(){ const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type='sine'; g.gain.value=0; o.connect(g).connect(masterGain); o.start();
+  const notes=[261.63,329.63,392,329.63,293.66,261.63,196,261.63]; let i=0;
+  setInterval(()=>{ if(!audioCtx||muted) return; const t=audioCtx.currentTime;
+    o.frequency.setTargetAtTime(notes[i%notes.length],t,.02);
+    g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(.08,t+.02);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.35);
+    i++;
+  },420);
+}
+function sfxCoin(){ if(!audioCtx||muted) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type='triangle'; o.frequency.value=900; g.gain.value=0; o.connect(g).connect(masterGain);
+  const t=audioCtx.currentTime; o.start(t); o.frequency.exponentialRampToValueAtTime(1500,t+.08);
+  g.gain.linearRampToValueAtTime(.18,t+.01); g.gain.exponentialRampToValueAtTime(.0001,t+.22); o.stop(t+.24); }
+function sfxLose(){ if(!audioCtx||muted) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type='sawtooth'; o.frequency.value=420; g.gain.value=0; o.connect(g).connect(masterGain);
+  const t=audioCtx.currentTime; o.start(t); o.frequency.exponentialRampToValueAtTime(120,t+.4);
+  g.gain.linearRampToValueAtTime(.22,t+.01); g.gain.exponentialRampToValueAtTime(0.0001,t+.5); o.stop(t+.52); }
 
-/* ---------- State & UI ---------- */
+/* ===== UI refs ===== */
+const overlay = document.getElementById('overlay');
+const secStart = document.getElementById('ovStart');
+const secHow   = document.getElementById('ovHow');
+const secOver  = document.getElementById('ovOver');
+const playBtn  = document.getElementById('playBtn');
+const playBtn2 = document.getElementById('playBtn2');
+const howBtn   = document.getElementById('howBtn');
+const backBtn  = document.getElementById('backBtn');
+const againBtn = document.getElementById('againBtn');
+const shareBtn = document.getElementById('shareBtn');
+const HUD = {
+  score:document.getElementById('score'),
+  coins:document.getElementById('coins'),
+  best:document.getElementById('best'),
+  pauseBtn:document.getElementById('pauseBtn'),
+  restartBtn:document.getElementById('restartBtn'),
+  muteBtn:document.getElementById('muteBtn'),
+};
+const finalScore = document.getElementById('finalScore');
+const finalMeta  = document.getElementById('finalMeta');
+
+/* ===== Overlay state machine ===== */
+let overlayMode='start';
+function setOverlay(mode){
+  overlayMode = mode;
+  overlay.classList.toggle('show', mode!=='hidden');
+
+  secStart.classList.toggle('show', mode==='start');
+  secHow.classList.toggle('show',   mode==='how');
+  secOver.classList.toggle('show',  mode==='over');
+}
+setOverlay('start');
+
+/* ===== Game state ===== */
 let running=false, paused=false, over=false;
 let tLast=0, time=0, spawnTimer=0, patternTimer=0, currentPattern='straight';
-let score=0, coins=0, best=Number(localStorage.getItem('narpe_best')||0);
-let speed=175, speedMult=1.0; const SPEED_RAMP=0.02;
-
-const HUD={score:document.getElementById('score'), coins:document.getElementById('coins'), best:document.getElementById('best'), pauseBtn:document.getElementById('pauseBtn'), restartBtn:document.getElementById('restartBtn'), muteBtn:document.getElementById('muteBtn')};
+let score=0, coins=0, best = Number(localStorage.getItem('narpe_best')||0);
 HUD.best.textContent='Best: '+best;
 
-const overlay=document.getElementById('overlay'), title=document.getElementById('title'), subtitle=document.getElementById('subtitle');
-const startActions=document.getElementById('startActions'), howBtn=document.getElementById('howBtn'), playBtn=document.getElementById('playBtn');
-const howContent=document.getElementById('howContent'), playBtn2=document.getElementById('playBtn2');
-const gameOverContent=document.getElementById('gameOverContent'), finalScore=document.getElementById('finalScore'), finalMeta=document.getElementById('finalMeta');
-const shareBtn=document.getElementById('shareBtn'), playAgainBtn=document.getElementById('playAgainBtn');
+let speed=175, speedMult=1.0; const SPEED_RAMP=0.02;
 
 const narpe={ x: innerWidth*0.24, y: innerHeight*0.5, vy:0, r:30, tilt:0, trail:[], flap:0, swimFlash:0, bob:0, glintPhase:0 };
 const OBS=[], COINS=[];
+const particles=[];
 let laneY=innerHeight*0.5, laneTarget=laneY;
 
-/* ---------- Helpers ---------- */
+/* ===== Helpers ===== */
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const rnd=(a,b)=>a+Math.random()*(b-a);
 function circleRectHit(cx,cy,cr, rx,ry,rw,rh, margin=12){ const x1=rx+margin, y1=ry+margin, x2=rx+rw-margin, y2=ry+rh-margin; const nx=clamp(cx,x1,x2), ny=clamp(cy,y1,y2); const dx=cx-nx, dy=cy-ny; return dx*dx+dy*dy < cr*cr; }
 function circleHit(ax,ay,ar, bx,by,br){ const dx=ax-bx, dy=ay-by; return (dx*dx+dy*dy) < (ar+br)*(ar+br); }
 
-/* ---------- Input (canvas to start) ---------- */
+/* ===== Input (canvas only triggers swim; buttons control start/how) ===== */
 function swim(){
-  if(overlay.classList.contains('show')) return;
-  if(!running){ start(); return; }
+  if(overlayMode!=='hidden') return;       // overlay visible → don't start
+  if(!running){ startGame(); return; }     // optional: tap canvas to start after pressing Play (kept soft)
   if(over||paused) return;
-  narpe.vy = -460;
-  narpe.swimFlash = 0.18; // short boost trail
+  narpe.vy = -460; narpe.swimFlash = 0.18;
   for(let i=0;i<6;i++){ particles.push({x:narpe.x-16,y:narpe.y+4, vx:rnd(-140,-60), vy:rnd(-50,50), life:.4, color:'#c8f3ff'}); }
 }
-canvas.addEventListener('pointerdown', ()=>swim(), {passive:true});
+cvs.addEventListener('pointerdown', ()=>swim(), {passive:true});
 addEventListener('keydown',e=>{
   if([' ','ArrowUp','Spacebar'].includes(e.key)){ e.preventDefault(); swim(); }
   if(e.key==='p') togglePause();
@@ -150,30 +212,51 @@ HUD.pauseBtn.onclick=()=>togglePause();
 HUD.restartBtn.onclick=()=>reset(true);
 HUD.muteBtn.onclick=()=>toggleMute();
 
-howBtn.onclick=()=>{ startActions.style.display='none'; howContent.style.display='block'; };
-playBtn.onclick=()=>start();
-playBtn2.onclick=()=>start();
-playAgainBtn.onclick=()=>start();
-shareBtn.onclick=()=>{
+howBtn.onclick = ()=> setOverlay('how');
+backBtn.onclick= ()=> setOverlay('start');
+playBtn.onclick = ()=> { setOverlay('hidden'); startGame(); };
+playBtn2.onclick= ()=> { setOverlay('hidden'); startGame(); };
+againBtn.onclick= ()=> { setOverlay('hidden'); startGame(); };
+shareBtn.onclick= ()=>{
   const text = encodeURIComponent(`I scored ${score} in the $NARPE Swim & Dodge mini-game! Try to beat me 👀🌊`);
-  const url = encodeURIComponent(location.origin);
+  const url  = encodeURIComponent(location.origin);
   window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
 };
 
-function togglePause(){ if(!running||over) return; paused=!paused; HUD.pauseBtn.textContent = paused?'Resume':'Pause'; paused ? showOverlay('paused') : hideOverlay(); }
+function togglePause(){
+  if(!running||over) return;
+  paused=!paused; HUD.pauseBtn.textContent = paused? 'Resume':'Pause';
+  setOverlay(paused? 'start' : 'hidden'); // reuse start panel look for pause (clean)
+}
+
+/* ===== Flow ===== */
+function startGame(){
+  reset(false);
+  running=true; paused=false; over=false;
+  setOverlay('hidden'); initAudio();
+  tLast = performance.now();
+  requestAnimationFrame(loop);
+}
+function reset(hard){
+  score=0; coins=0; speed=175; speedMult=1.0; spawnTimer=0; patternTimer=0; currentPattern='straight';
+  HUD.score.textContent='Score: 0'; HUD.coins.textContent='Coins: 0';
+  narpe.x=innerWidth*0.24; narpe.y=innerHeight*0.5; narpe.vy=0; narpe.tilt=0; narpe.trail.length=0;
+  narpe.flap=0; narpe.bob=0; narpe.glintPhase=0; narpe.swimFlash=0;
+  laneY=innerHeight*0.5; laneTarget=laneY;
+  OBS.length=0; COINS.length=0; particles.length=0;
+  if(hard){ running=false; paused=false; over=false; setOverlay('start'); }
+}
+function endGame(){
+  over=true; running=false; paused=false; sfxLose();
+  if(score>best){ best=score; localStorage.setItem('narpe_best',best); HUD.best.textContent='Best: '+best; }
+  finalScore.textContent = `Score: ${score}`;
+  finalMeta.textContent  = `Best: ${best} • Coins: ${coins}`;
+  setOverlay('over');
+}
 function toggleMute(){ muted=!muted; HUD.muteBtn.textContent = muted?'Unmute':'Mute'; if(audioCtx) masterGain.gain.value = muted? 0 : 0.7; }
 
-/* ---------- Overlays ---------- */
-function showOverlay(mode){
-  overlay.classList.add('show');
-  if(mode==='start'){ title.textContent='$NARPE — Swim & Dodge'; subtitle.textContent='Tap / Space / ↑ to swim. Wide lanes, varied patterns, coins to collect.'; startActions.style.display='flex'; howContent.style.display='none'; gameOverContent.style.display='none'; }
-  else if(mode==='paused'){ title.textContent='Paused'; subtitle.textContent='Tap / Space / ↑ to continue.'; startActions.style.display='none'; howContent.style.display='none'; gameOverContent.style.display='none'; }
-  else if(mode==='over'){ title.textContent='Game Over'; subtitle.textContent='Well played.'; finalScore.textContent = `Score: ${score}`; finalMeta.textContent  = `Best: ${best} • Coins: ${coins}`; startActions.style.display='none'; howContent.style.display='none'; gameOverContent.style.display='block'; confetti(); }
-}
-function hideOverlay(){ overlay.classList.remove('show'); }
-
-/* ---------- Patterns & Spawning ---------- */
-function pickPattern(){ const p=['straight','gentleWave','rising','falling','zigzag']; currentPattern = p[Math.floor(Math.random()*p.length)]; patternTimer = 4 + Math.random()*4; }
+/* ===== Patterns & Spawning ===== */
+function pickPattern(){ const p=['straight','gentleWave','rising','falling','zigzag']; currentPattern=p[(Math.random()*p.length)|0]; patternTimer=4+Math.random()*4; }
 function updateLane(dt){
   patternTimer -= dt; if(patternTimer<=0) pickPattern();
   const h=innerHeight, top=h*0.2, bot=h*0.8;
@@ -189,8 +272,10 @@ function updateLane(dt){
 }
 function spawn(){
   const h=innerHeight;
-  const GAP = Math.max(230, h * (0.32 + Math.random()*0.06));
-  updateLane(0); const yMid = laneY; const v = speed * speedMult;
+  const GAP = Math.max(230, h * (0.32 + Math.random()*0.06)); // wide & fair
+  updateLane(0);
+  const yMid = laneY;
+  const v = speed * speedMult;
 
   const topRect = Math.random() < 0.8;
   const botRect = Math.random() < 0.7;
@@ -201,9 +286,12 @@ function spawn(){
   if(botRect) OBS.push(makeIceberg(innerWidth+60, yMid+GAP/2, 66, 290, -v));
   else        OBS.push({shape:'circle', x: innerWidth+88, y: yMid+GAP/2+95, r:22, vx:-v, passed:false});
 
-  if(yMid < h*0.44 && Math.random()<0.22){ OBS.push(makeIceberg(innerWidth+60, 0, 54, Math.floor(100+Math.random()*120), -v, true)); }
+  // anti-top idle
+  if(yMid < h*0.44 && Math.random()<0.22){
+    OBS.push(makeIceberg(innerWidth+60, 0, 54, Math.floor(100+Math.random()*120), -v, true));
+  }
 
-  // prettier, shiny coins
+  // shiny coins
   if(Math.random()<0.9){
     COINS.push({x: innerWidth+60 + rnd(140,220), y: yMid + rnd(-GAP/3, GAP/3), r:12, vx:-v, got:false, a:0, pulse:0});
   }
@@ -211,9 +299,9 @@ function spawn(){
   spawnTimer = 1.6 * (175 / speed);
 }
 
-/* ---------- Fancy obstacles ---------- */
+/* ===== Fancy obstacles ===== */
 function makeIceberg(x,y,w,h,vx,ceiling=false){
-  const spikes = 5 + Math.floor(Math.random()*3), pts=[];
+  const spikes = 5 + (Math.random()*3|0), pts=[];
   for(let i=0;i<=spikes;i++){
     const t=i/spikes, jitter=(Math.random()*0.35 - 0.18)*w;
     const px=x + t*w + jitter*0.5;
@@ -223,222 +311,91 @@ function makeIceberg(x,y,w,h,vx,ceiling=false){
   return {shape:'poly', pts, x, y, w, h, vx, passed:false, ceiling};
 }
 
-/* ---------- Particles / FX ---------- */
-const particles=[];
+/* ===== Particles / FX ===== */
 function burst(x,y,color='#ffd75e'){ for(let i=0;i<12;i++){ particles.push({x,y, vx:rnd(-120,120), vy:rnd(-160,-60), life:1, color}); } }
-function drawFX(dt){
-  fxc.clearRect(0,0,fx.width/dpr,fx.height/dpr);
-  for(let i=particles.length-1;i>=0;i--){
-    const p=particles[i]; p.life-=dt; if(p.life<=0){ particles.splice(i,1); continue; }
-    p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=420*dt;
-    fxc.globalAlpha=Math.max(0,p.life);
-    fxc.fillStyle=p.color; fxc.beginPath(); fxc.arc(p.x,p.y,3,0,Math.PI*2); fxc.fill(); fxc.globalAlpha=1;
-  }
-}
 
-/* ---------- Drawing ---------- */
+/* ===== Drawing ===== */
 function drawBG(tm){
   const w=innerWidth,h=innerHeight; ctx.clearRect(0,0,w,h);
-  const g=ctx.createLinearGradient(0,0,0,h); g.addColorStop(0,'#08295f'); g.addColorStop(1,'#041632'); ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
-  ctx.globalAlpha=.14; ctx.fillStyle='#00102a'; for(let i=0;i<6;i++){ const y=h*0.82 + i*18; ctx.fillRect(-((tm*12)+(i*90))%(w+200), y, w+200, 6); } ctx.globalAlpha=1;
-  for(let i=0;i<5;i++){ const x=(tm*0.02 + i*220)%(w+220)-220; ctx.globalAlpha=.06; ctx.fillStyle='#7fd1ff'; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x+140,0); ctx.lineTo(x+40,h); ctx.lineTo(x-100,h); ctx.closePath(); ctx.fill(); } ctx.globalAlpha=1;
-  for(let i=0;i<18;i++){ const bx=(tm*0.12 + i*(w/18))%(w+80)-40, by=(tm*0.06 + i*40)%(h+40)-20; ctx.globalAlpha=.33; ctx.fillStyle='#b8f0ff'; ctx.beginPath(); ctx.arc(bx,h-by,3+(i%3),0,Math.PI*2); ctx.fill(); } ctx.globalAlpha=1;
+
+  // deep ocean gradient (already handled by body bg; add parallax + rays here)
+  ctx.globalAlpha=.14; ctx.fillStyle='#00102a';
+  for(let i=0;i<6;i++){ const y=h*0.82 + i*18; ctx.fillRect(-((tm*12)+(i*90))%(w+200), y, w+200, 6); }
+  ctx.globalAlpha=1;
+
+  for(let i=0;i<5;i++){
+    const x=(tm*0.02 + i*220)%(w+220)-220;
+    ctx.globalAlpha=.06; ctx.fillStyle='#7fd1ff';
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x+140,0); ctx.lineTo(x+40,h); ctx.lineTo(x-100,h); ctx.closePath(); ctx.fill();
+  }
+  ctx.globalAlpha=1;
+
+  for(let i=0;i<18;i++){
+    const bx=(tm*0.12 + i*(w/18))%(w+80)-40, by=(tm*0.06 + i*40)%(h+40)-20;
+    ctx.globalAlpha=.33; ctx.fillStyle='#b8f0ff';
+    ctx.beginPath(); ctx.arc(bx,h-by,3+(i%3),0,Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha=1;
 }
 
 function drawNarpe(x,y,tilt,dt){
   narpe.bob += dt*2; narpe.flap += dt*6; if(narpe.swimFlash>0) narpe.swimFlash -= dt; narpe.glintPhase += dt;
-
-  // squash & stretch based on vertical speed
-  const vy = narpe.vy, squash = clamp(1 - vy/1200, 0.85, 1.12), stretch = clamp(1 + vy/1200, 0.88, 1.15);
+  const vy=narpe.vy, squash=clamp(1 - vy/1200, .85, 1.12), stretch=clamp(1 + vy/1200, .88, 1.15);
 
   // shadow
   ctx.globalAlpha=.25; ctx.fillStyle='#001222'; ctx.beginPath(); ctx.ellipse(x+6,y+12,40,14,0,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
 
-  ctx.save();
-  ctx.translate(x, y + Math.sin(narpe.bob)*1.5);
-  ctx.rotate(tilt*0.04);
-  ctx.scale(stretch, squash);
+  ctx.save(); ctx.translate(x, y + Math.sin(narpe.bob)*1.5); ctx.rotate(tilt*0.04); ctx.scale(stretch, squash);
 
   if(narpeReady){
-    const s=96; ctx.drawImage(narpeImg, -s*0.6, -s*0.6, s*1.2, s*1.2);
-    // horn glint sweep (periodic)
-    const gl = (Math.sin(narpe.glintPhase*1.6)+1)/2; if(gl>0.85){
-      ctx.globalAlpha=(gl-0.85)*6*0.6;
-      ctx.fillStyle='#ffffff';
-      ctx.beginPath(); ctx.moveTo(22,-18); ctx.lineTo(56,-26); ctx.lineTo(20,-8); ctx.closePath(); ctx.fill();
-      ctx.globalAlpha=1;
-    }
+    const s=96; ctx.drawImage(narpeImg,-s*0.6,-s*0.6,s*1.2,s*1.2);
+    const gl=(Math.sin(narpe.glintPhase*1.6)+1)/2; if(gl>0.86){ ctx.globalAlpha=(gl-0.86)*6*0.6; ctx.fillStyle='#fff';
+      ctx.beginPath(); ctx.moveTo(22,-18); ctx.lineTo(56,-26); ctx.lineTo(20,-8); ctx.closePath(); ctx.fill(); ctx.globalAlpha=1; }
   } else {
-    // animated fallback: tail & fin flap
-    // body
     ctx.fillStyle='#bfe7ff'; ctx.beginPath(); ctx.ellipse(0,0,44,34,0,0,Math.PI*2); ctx.fill();
-    // belly
     ctx.fillStyle='#e8f7ff'; ctx.beginPath(); ctx.ellipse(0,8,26,20,0,0,Math.PI*2); ctx.fill();
-    // tail (waving)
     ctx.fillStyle='#bfe7ff'; ctx.save(); ctx.translate(-40,8); ctx.rotate(Math.sin(narpe.flap)*0.25);
     ctx.beginPath(); ctx.moveTo(0,0); ctx.quadraticCurveTo(-24,-8,-4,-16); ctx.quadraticCurveTo(12,-6,0,0); ctx.fill(); ctx.restore();
-    // dorsal fin (flap)
-    ctx.fillStyle='#bfe7ff'; ctx.save(); ctx.translate(-4,-18); ctx.rotate(Math.sin(narpe.flap*0.8)*0.15); ctx.beginPath(); ctx.moveTo(0,0); ctx.quadraticCurveTo(10,-10,16,0); ctx.quadraticCurveTo(8,-2,0,0); ctx.fill(); ctx.restore();
-    // horn
+    ctx.fillStyle='#bfe7ff'; ctx.save(); ctx.translate(-4,-18); ctx.rotate(Math.sin(narpe.flap*0.8)*0.15); ctx.beginPath();
+    ctx.moveTo(0,0); ctx.quadraticCurveTo(10,-10,16,0); ctx.quadraticCurveTo(8,-2,0,0); ctx.fill(); ctx.restore();
     ctx.strokeStyle='#503200'; ctx.lineWidth=2; ctx.fillStyle='#ffd75e';
     ctx.beginPath(); ctx.moveTo(22,-18); ctx.lineTo(58,-28); ctx.lineTo(20,-8); ctx.closePath(); ctx.fill(); ctx.stroke();
-    // eye
     ctx.fillStyle='#fff'; ctx.beginPath(); ctx.ellipse(8,-4,12,10,0,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(12,-4,4,0,Math.PI*2); ctx.fill();
-    // mouth
     ctx.strokeStyle='#ed6a5a'; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(6,10,12,.2*Math.PI,.9*Math.PI); ctx.stroke();
   }
 
-  // swim burst trail
-  if(narpe.swimFlash>0){
-    ctx.globalAlpha = narpe.swimFlash*3;
-    ctx.fillStyle='#c8f3ff'; ctx.beginPath(); ctx.ellipse(-28,6,18,8,0,0,Math.PI*2); ctx.fill();
-    ctx.globalAlpha=1;
-  }
-
+  if(narpe.swimFlash>0){ ctx.globalAlpha=narpe.swimFlash*3; ctx.fillStyle='#c8f3ff'; ctx.beginPath(); ctx.ellipse(-28,6,18,8,0,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; }
   ctx.restore();
 
-  // trailing bubbles
+  // trail bubbles
   narpe.trail.push({x:x-20,y:y+Math.sin(narpe.bob)*1.5,life:1});
   for(let i=narpe.trail.length-1;i>=0;i--){
     const p=narpe.trail[i]; p.life-=0.02; if(p.life<=0){ narpe.trail.splice(i,1); continue; }
     ctx.globalAlpha=p.life*0.4; ctx.fillStyle='#c8f3ff';
-    ctx.beginPath(); ctx.arc(p.x, p.y + Math.sin((1-p.life)*6)*4, 3+p.life*2, 0, Math.PI*2); ctx.fill();
-    ctx.globalAlpha=1;
+    ctx.beginPath(); ctx.arc(p.x, p.y + Math.sin((1-p.life)*6)*4, 3+p.life*2, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
   }
 }
-
 function drawIceberg(poly){
-  ctx.save();
-  ctx.beginPath(); ctx.moveTo(poly.pts[0].x, poly.pts[0].y);
+  ctx.save(); ctx.beginPath(); ctx.moveTo(poly.pts[0].x, poly.pts[0].y);
   for(let i=1;i<poly.pts.length;i++){ const p=poly.pts[i]; ctx.lineTo(p.x,p.y); }
   ctx.lineTo(poly.x+poly.w, poly.y+poly.h); ctx.lineTo(poly.x, poly.y+poly.h); ctx.closePath();
   const g=ctx.createLinearGradient(poly.x,poly.y, poly.x, poly.y+poly.h); g.addColorStop(0,'#b9ecff'); g.addColorStop(1,'#7cc9e6'); ctx.fillStyle=g; ctx.fill();
   ctx.strokeStyle='#368fb0'; ctx.lineWidth=2; ctx.stroke();
   ctx.globalAlpha=.25; ctx.fillStyle='#e7f8ff';
-  for(let i=0;i<poly.pts.length-1;i++){ const a=poly.pts[i], b=poly.pts[i+1]; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo((a.x+b.x)/2, (a.y+b.y)/2 + (poly.ceiling?-8:8)); ctx.lineTo(b.x,b.y); ctx.closePath(); ctx.fill(); }
-  ctx.globalAlpha=.12; ctx.fillStyle='#fff'; ctx.fillRect(poly.x+6, poly.y+6, poly.w-12, 10); ctx.globalAlpha=1;
-  ctx.restore();
+  for(let i=0;i<poly.pts.length-1;i++){ const a=poly.pts[i], b=poly.pts[i+1]; ctx.beginPath(); ctx.moveTo(a.x,a.y);
+    ctx.lineTo((a.x+b.x)/2, (a.y+b.y)/2 + (poly.ceiling?-8:8)); ctx.lineTo(b.x,b.y); ctx.closePath(); ctx.fill(); }
+  ctx.globalAlpha=.12; ctx.fillStyle='#fff'; ctx.fillRect(poly.x+6, poly.y+6, poly.w-12, 10); ctx.globalAlpha=1; ctx.restore();
 }
 function drawMine(o){
   ctx.save(); ctx.translate(o.x,o.y);
-  const rad = o.r*1.9, g=ctx.createRadialGradient(0,0,0,0,0,rad); g.addColorStop(0,'rgba(130,180,255,.26)'); g.addColorStop(1,'rgba(130,180,255,0)');
+  const rad=o.r*1.9, g=ctx.createRadialGradient(0,0,0,0,0,rad); g.addColorStop(0,'rgba(130,180,255,.26)'); g.addColorStop(1,'rgba(130,180,255,0)');
   ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,rad,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#5c6b7a'; ctx.beginPath(); ctx.arc(0,0,o.r,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#7f8fa0'; for(let k=0;k<8;k++){ const a=k*Math.PI/4, R=o.r+10; ctx.beginPath(); ctx.arc(Math.cos(a)*R, Math.sin(a)*R, 4, 0, Math.PI*2); ctx.fill(); }
   ctx.restore();
 }
-
-/* >>> Pretty shiny coins <<< */
-function drawCoin(c, dt){
-  c.a += dt*2.6; c.pulse += dt*2; // spin + pulse
+function drawCoin(c,dt){
+  c.a += dt*2.6; c.pulse += dt*2;
   const scale = 1 + Math.sin(c.pulse)*0.06;
-
-  ctx.save(); ctx.translate(c.x,c.y); ctx.scale(scale, scale); ctx.rotate(Math.sin(c.a)*0.08);
-
-  // soft outer glow
-  const halo=ctx.createRadialGradient(0,0,0,0,0,c.r*2.2);
-  halo.addColorStop(0,'rgba(255,232,140,.35)'); halo.addColorStop(1,'rgba(255,232,140,0)');
-  ctx.fillStyle=halo; ctx.beginPath(); ctx.arc(0,0,c.r*2.1,0,Math.PI*2); ctx.fill();
-
-  // glossy body
-  const g=ctx.createRadialGradient(-3,-3,2,0,0,c.r);
-  g.addColorStop(0,'#fff8d6'); g.addColorStop(1,'#ffcc48');
-  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,c.r,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle='rgba(0,0,0,.35)'; ctx.lineWidth=2; ctx.stroke();
-
-  // rotating specular highlight (a crescent)
-  ctx.globalAlpha=.75; ctx.fillStyle='#ffffff';
-  ctx.beginPath(); ctx.ellipse(-c.r*0.2, -c.r*0.2, c.r*0.55, c.r*0.22, Math.sin(c.a)*0.8, 0, Math.PI*2); ctx.fill();
-  ctx.globalAlpha=1;
-
-  // sparkle star
-  ctx.save(); ctx.rotate(c.a*1.6);
-  ctx.fillStyle='#ffffff'; ctx.globalAlpha=.9;
-  ctx.beginPath(); ctx.moveTo(0,-2); ctx.lineTo(1.5,0); ctx.lineTo(0,2); ctx.lineTo(-1.5,0); ctx.closePath(); ctx.fill();
-  ctx.restore();
-
-  ctx.restore();
-}
-
-/* ---------- Loop ---------- */
-const particles=[];
-let tLastFrame=0;
-function loop(now){
-  if(!running) return;
-  const dt=Math.min(0.04,(now-tLast)/1000); tLast=now; time+=dt;
-
-  if(!paused && !over){
-    // speed ramp
-    speedMult += SPEED_RAMP * dt;
-    const v = speed * speedMult;
-
-    // physics & anim drives
-    const G=1080;
-    narpe.vy += G*dt; narpe.vy = clamp(narpe.vy, -520, 700);
-    narpe.y += narpe.vy*dt; narpe.y = clamp(narpe.y, 30, innerHeight-30);
-    narpe.tilt = narpe.vy/200;
-
-    spawnTimer -= dt; if(spawnTimer<=0){ updateLane(dt); spawn(); }
-
-    for(const o of OBS){ o.vx=-v; o.x += o.vx*dt; if(o.shape==='poly'){ const dx=o.vx*dt; for(const p of o.pts){ p.x+=dx; } } }
-    for(const c of COINS){ c.vx=-v; c.x += c.vx*dt; }
-
-    // collisions & scoring
-    for(const o of OBS){
-      let hit=false;
-      if(o.shape==='poly'){ hit = circleRectHit(narpe.x,narpe.y,narpe.r, o.x,o.y,o.w,o.h, 14); }
-      else { hit = circleHit(narpe.x,narpe.y, narpe.r*0.82, o.x,o.y, o.r*0.92); }
-      if(hit){ end(); return; }
-      const back = o.shape==='circle' ? (o.x + o.r*2) : (o.x + o.w);
-      if(!o.passed && back < narpe.x){ o.passed=true; score+=1; HUD.score.textContent='Score: '+score; }
-    }
-    for(const c of COINS){
-      if(!c.got && circleHit(narpe.x,narpe.y,narpe.r*1.1, c.x,c.y,c.r*1.4)){
-        c.got=true; coins++; score+=5; HUD.coins.textContent='Coins: '+coins; HUD.score.textContent='Score: '+score; sfxCoin(); burst(c.x,c.y);
-      }
-    }
-
-    // cleanup
-    while(OBS.length && (OBS[0].x + (OBS[0].w||OBS[0].r*2)) < -120) OBS.shift();
-    while(COINS.length && COINS[0].x < -120) COINS.shift();
-  }
-
-  // draw
-  drawBG(time*60);
-  for(const o of OBS){ if(o.shape==='poly') drawIceberg(o); else drawMine(o); }
-  for(const c of COINS) if(!c.got) drawCoin(c, dt);
-  drawNarpe(narpe.x,narpe.y,narpe.tilt,dt);
-  // FX
-  fxc.clearRect(0,0,fx.width/dpr,fx.height/dpr);
-  for(let i=particles.length-1;i>=0;i--){
-    const p=particles[i]; p.life-=dt; if(p.life<=0){ particles.splice(i,1); continue; }
-    p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=420*dt;
-    fxc.globalAlpha=Math.max(0,p.life);
-    fxc.fillStyle=p.color; fxc.beginPath(); fxc.arc(p.x,p.y,3,0,Math.PI*2); fxc.fill(); fxc.globalAlpha=1;
-  }
-
-  requestAnimationFrame(loop);
-}
-
-/* ---------- Start/Reset/End ---------- */
-function start(){ reset(false); running=true; paused=false; over=false; hideOverlay(); initAudio(); tLast=performance.now(); requestAnimationFrame(loop); }
-function reset(hard){
-  score=0; coins=0; speed=175; speedMult=1.0; spawnTimer=0; patternTimer=0; currentPattern='straight';
-  HUD.score.textContent='Score: 0'; HUD.coins.textContent='Coins: 0';
-  narpe.x=innerWidth*0.24; narpe.y=innerHeight*0.5; narpe.vy=0; narpe.tilt=0; narpe.trail.length=0; narpe.swimFlash=0; narpe.bob=0; narpe.glintPhase=0; narpe.flap=0;
-  laneY=innerHeight*0.5; laneTarget=laneY; OBS.length=0; COINS.length=0; particles.length=0;
-  if(hard){ running=false; paused=false; over=false; showOverlay('start'); }
-}
-function end(){
-  over=true; running=false; paused=false; sfxLose();
-  if(score>best){ best=score; localStorage.setItem('narpe_best',best); HUD.best.textContent='Best: '+best; }
-  showOverlay('over');
-}
-
-/* ---------- Init ---------- */
-showOverlay('start'); overlay.classList.add('show');
-})();
-</script>
-</body>
-</html>
+  ctx.sav
