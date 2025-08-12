@@ -1,401 +1,184 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>$NARPE — Swim & Dodge</title>
-<meta name="theme-color" content="#6a00ff" />
-<style>
-  :root{
-    --violet:#6a00ff; --night:#001f4d; --teal:#16c7be; --gold:#ffd75e;
-    --glassA:rgba(255,255,255,.10); --glassB:rgba(0,0,0,.38); --border:rgba(255,255,255,.16);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:radial-gradient(1200px 800px at 20% -10%, #7f45ff 0%, #3b2a98 35%, #001f4d 80%);color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
-  #canvas{display:block;width:100vw;height:100vh;touch-action:manipulation}
-  #fx{position:fixed;inset:0;pointer-events:none;z-index:6}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>$NARR — Ride the Meme Wave</title>
 
-  /* HUD */
-  #hud{position:fixed;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom) 16px}
-  .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .pill{background:var(--glassB);border:1px solid var(--border);padding:10px 14px;border-radius:14px;backdrop-filter:blur(10px);font-weight:800;letter-spacing:.3px}
-  .btn{pointer-events:auto;user-select:none;cursor:pointer;background:var(--teal);color:#081018;border:none;font-weight:900;padding:12px 16px;border-radius:14px;box-shadow:0 8px 0 rgba(0,0,0,.35);transition:transform .06s ease,filter .2s ease, box-shadow .06s}
-  .btn:active{transform:translateY(2px);box-shadow:0 6px 0 rgba(0,0,0,.35)}
-  .btn.alt{background:#fff;color:#111}
-  .btn.gold{background:var(--gold);color:#111}
+  <!-- Fonts + Tailwind -->
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            narpe: { teal:'#16c7be', deep:'#0b1833', gold:'#ffd75e', ice:'#e6f7f7', violet:'#6a00ff', night:'#001f4d' }
+          },
+          fontFamily: {
+            display:['Luckiest Guy','system-ui','sans-serif'],
+            sans:['Inter','system-ui','sans-serif']
+          },
+          dropShadow: { cartoon: '0 3px 0 rgba(0,0,0,.45)' }
+        }
+      }
+    }
+  </script>
 
-  /* Overlays */
-  #overlay{position:fixed;inset:0;display:none;place-items:center;background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.55));backdrop-filter:blur(10px);z-index:8}
-  #overlay.show{display:grid}
-  .card{width:min(720px,92vw);background:linear-gradient(180deg, var(--glassA), rgba(255,255,255,.05));
-        border:1px solid var(--border);border-radius:22px;padding:26px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.5)}
-  .title{font-weight:900;font-size:2.1rem;letter-spacing:.4px;margin:.1rem 0 .4rem;text-shadow:0 6px 18px rgba(0,0,0,.4)}
-  .subtitle{opacity:.95;margin:.25rem 0 .75rem}
-  .hint{font-size:.95rem;opacity:.85;margin:.25rem 0 .75rem}
-  .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:.25rem}
-  .section{display:none}
-  .section.show{display:block}
-  .bigscore{font-size:2.6rem;font-weight:900;letter-spacing:.6px;margin:.25rem 0 .2rem;text-shadow:0 8px 24px rgba(0,0,0,.5)}
-  .subscore{opacity:.92}
+  <!-- Social share -->
+  <meta property="og:title" content="$NARR — Ride the Meme Wave">
+  <meta property="og:description" content="A community driven memecoin on the Abstract chain. Monthly mini games, weekly giveaways, collabs, and a major Dapp coming soon.">
+  <meta property="og:image" content="OG_IMAGE_1200x630.png">
+  <meta name="theme-color" content="#6a00ff">
 
-  /* small helper for icon-ish buttons */
-  .btn.small{padding:10px 12px;border-radius:12px}
-</style>
+  <style>
+    .headline-outline{
+      text-shadow:2px 2px 0 #000,-2px 2px 0 #000,2px -2px 0 #000,-2px -2px 0 #000
+    }
+    .hero-bg{
+      background:
+        linear-gradient(180deg, rgba(106,0,255,.75), rgba(0,31,77,.85)),
+        url('HERO_BG_SPACE.jpg') center/cover no-repeat;
+    }
+  </style>
 </head>
-<body>
-<canvas id="canvas"></canvas>
-<canvas id="fx"></canvas>
+<body class="bg-narpe-deep text-white font-sans">
 
-<!-- HUD -->
-<div id="hud">
-  <div class="row" style="padding:12px">
-    <div class="pill" id="score">Score: 0</div>
-    <div class="row" style="gap:10px">
-      <div class="pill" id="coins">Coins: 0</div>
-      <div class="pill" id="best">Best: 0</div>
-      <button id="muteBtn" class="btn alt small" aria-label="Mute">Mute</button>
-      <button id="pauseBtn" class="btn small" aria-label="Pause">Pause</button>
-    </div>
-  </div>
-  <div class="row" style="padding:12px">
-    <a class="btn gold small" href="/" title="Back to site">← Back</a>
-    <button id="restartBtn" class="btn small">Restart</button>
-  </div>
-</div>
+  <!-- HEADER / HERO -->
+  <header class="relative hero-bg">
+    <div class="absolute inset-0 bg-black/20"></div>
 
-<!-- Overlay -->
-<div id="overlay" class="show" role="dialog" aria-modal="true">
-  <div class="card">
-    <div class="title" id="ovTitle">$NARPE — Swim & Dodge</div>
-    <div class="subtitle" id="ovSubtitle">Tap / Space / ↑ to swim. Wide lanes, varied patterns, glowing coins. Avoid ice & naval mines.</div>
+    <div class="relative max-w-6xl mx-auto px-4 py-16 lg:py-24 grid lg:grid-cols-2 gap-10 items-center">
+      <div>
+        <h1 class="font-display text-5xl sm:text-6xl leading-tight headline-outline">
+          Ride the Meme Wave
+          <span class="block text-narpe-teal drop-shadow-cartoon">$NARR on Abstract</span>
+        </h1>
 
-    <!-- START -->
-    <div id="ovStart" class="section show">
-      <div class="hint">Mobile: tap the game · Desktop: Space or ↑ · Press M to mute</div>
-      <div class="actions">
-        <button id="howBtn" class="btn alt">How to</button>
-        <button id="playBtn" class="btn">Play</button>
+        <p class="mt-5 text-lg text-white/90 max-w-xl">
+          A community driven memecoin on the Abstract chain. The narwhal taking on the penguin meta with fast visuals, faster memes and real momentum.
+        </p>
+
+        <div class="mt-7 flex flex-wrap gap-3">
+          <a href="DEXSCREENER_LINK" class="px-5 py-3 rounded-xl bg-narpe-teal text-narpe-deep font-extrabold drop-shadow-cartoon hover:scale-[1.02] transition">DEXScreener</a>
+          <a href="TWITTER_LINK" class="px-5 py-3 rounded-xl bg-white/10 border border-white/15 hover:bg-white/15 transition">Twitter / X</a>
+          <a href="TELEGRAM_LINK" class="px-5 py-3 rounded-xl bg-white/10 border border-white/15 hover:bg-white/15 transition">Telegram</a>
+        </div>
+
+        <div class="mt-6 space-y-2">
+          <div class="text-sm text-white/85">Chain: <span class="font-semibold text-white">Abstract</span></div>
+          <div class="text-sm text-white/85">
+            Contract (CA): <code id="ca" class="bg-black/40 px-2 py-1 rounded">TBA</code>
+            <button onclick="copyCA()" class="ml-2 text-xs px-3 py-1.5 rounded bg-narpe-gold text-black font-bold hover:opacity-90 transition">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative">
+        <img src="HERO_NARPE_IMAGE.png" alt="Narwhal hero" class="w-full rounded-2xl shadow-2xl object-cover">
       </div>
     </div>
+  </header>
 
-    <!-- HOW TO -->
-    <div id="ovHow" class="section">
-      <p>• Tap / Space / ↑ to swim upward. Gravity pulls you down.</p>
-      <p>• Pass through the wide gaps to score. Coins are +5 and easy to grab.</p>
-      <p>• Speed increases gradually — keep your rhythm, not the ceiling.</p>
-      <div class="actions">
-        <button id="backBtn" class="btn alt">Back</button>
-        <button id="playBtn2" class="btn">Play</button>
+  <!-- CONTENT SECTIONS -->
+  <main>
+    <!-- The Counter Meta -->
+    <section id="countermeta" class="max-w-6xl mx-auto px-4 py-12 lg:py-16">
+      <h2 class="font-display text-3xl sm:text-4xl mb-4 text-narpe-teal">The Counter Meta</h2>
+      <div class="rounded-2xl p-6" style="background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.15);">
+        <p class="text-white/90">
+          Timelines got buried by penguins, cute, safe, predictable. Then a horn cut through the water. <span class="font-semibold">$NARR</span> arrived. If they waddle we spear. If they echo we make noise. The feed needed a new main character and we showed up with a wave.
+        </p>
+      </div>
+    </section>
+
+    <!-- What $NARR Is -->
+    <section id="what" class="max-w-6xl mx-auto px-4 py-12 lg:py-16">
+      <h2 class="font-display text-3xl sm:text-4xl mb-4 text-narpe-teal">What $NARR Is</h2>
+      <div class="rounded-2xl p-6" style="background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.15);">
+        <p class="text-white/90">
+          A community driven token built for speed, with sharp visuals, relentless memes and a character you can spot from a mile away. No corporate fluff, just culture, momentum and a crew that ships.
+        </p>
+      </div>
+    </section>
+
+    <!-- The Legend -->
+    <section id="legend" class="max-w-6xl mx-auto px-4 py-12 lg:py-16">
+      <h2 class="font-display text-3xl sm:text-4xl mb-4 text-narpe-teal">The Legend</h2>
+      <div class="rounded-2xl p-6" style="background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.15);">
+        <p class="text-white/90">
+          On an ocean ruled by penguins a narwhal surfaced, horn shining, grin wide, and took the current. Every chart is water and water belongs to the narwhal.
+        </p>
+      </div>
+    </section>
+
+    <!-- Planned Features -->
+    <section id="features" class="max-w-6xl mx-auto px-4 py-12 lg:py-16">
+      <h2 class="font-display text-3xl sm:text-4xl mb-6 text-narpe-teal">Planned Features</h2>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="rounded-2xl p-6" style="background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.15);">
+          <div class="text-narpe-gold font-extrabold mb-2">Monthly Mini-Games & Weekly Giveaways</div>
+          <p class="text-white/85 text-sm">Fresh addictive games every month with a public leaderboard. Each week high score players win prizes.</p>
+        </div>
+        <div class="rounded-2xl p-6" style="background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.15);">
+          <div class="text-narpe-gold font-extrabold mb-2">Collabs & Community Raids</div>
+          <p class="text-white/85 text-sm">Cross project stunts with Abstract friends, coordinated meme raids and playful rivalry with the penguin crowd.</p>
+        </div>
+        <div class="rounded-2xl p-6" style="background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.15);">
+          <div class="text-narpe-gold font-extrabold mb-2">Major Future Dapp</div>
+          <p class="text-white/85 text-sm">In the works with details to be revealed soon.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- The Playbook -->
+    <section id="playbook" class="max-w-6xl mx-auto px-4 py-12 lg:py-16">
+      <h2 class="font-display text-3xl sm:text-4xl mb-4 text-narpe-teal">The Playbook</h2>
+      <div class="rounded-2xl p-6" style="background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.15);">
+        <p class="text-white/90">
+          Ship monthly games. Reward skill weekly. Amplify the funniest community posts. Drop art people actually use as PFPs. Turn every meme into motion and every motion into momentum.
+        </p>
+      </div>
+    </section>
+
+    <!-- Join -->
+    <section id="join" class="max-w-6xl mx-auto px-4 py-12 lg:py-16">
+      <h2 class="font-display text-3xl sm:text-4xl mb-4 text-narpe-teal">Join the Pod</h2>
+      <div class="rounded-2xl p-6" style="background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.15);">
+        <p class="text-white/90">
+          We will not promise the world, we will flood the timeline. $NARR turns holders into a pod that is loud, loyal and impossible to ignore. The penguins can keep the ice. We take the ocean.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="DEXSCREENER_LINK" class="px-5 py-3 rounded-xl bg-narpe-teal text-narpe-deep font-extrabold drop-shadow-cartoon hover:scale-[1.02] transition">DEXScreener</a>
+          <a href="TWITTER_LINK" class="px-5 py-3 rounded-xl bg-white/10 border border-white/15 hover:bg-white/15 transition">Twitter / X</a>
+          <a href="TELEGRAM_LINK" class="px-5 py-3 rounded-xl bg-white/10 border border-white/15 hover:bg-white/15 transition">Telegram</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="mt-10 border-t border-white/10">
+    <div class="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <p class="text-white/60 text-sm">© <span id="year"></span> NARR • Not financial advice</p>
+      <div class="flex gap-3">
+        <a href="TWITTER_LINK" class="text-white/80 hover:text-white">Twitter</a>
+        <a href="TELEGRAM_LINK" class="text-white/80 hover:text-white">Telegram</a>
+        <a href="DEXSCREENER_LINK" class="text-white/80 hover:text-white">DEXScreener</a>
       </div>
     </div>
+  </footer>
 
-    <!-- GAME OVER -->
-    <div id="ovOver" class="section">
-      <div class="bigscore" id="finalScore">Score: 0</div>
-      <div class="subscore" id="finalMeta">Best: 0 • Coins: 0</div>
-      <div class="actions">
-        <button id="shareBtn" class="btn gold">Share score on X</button>
-        <button id="againBtn" class="btn">Play again</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-(()=>{
-/* ===== Canvas & DPI ===== */
-const dpr = Math.max(1, Math.min(2, devicePixelRatio||1));
-const cvs = document.getElementById('canvas'); const ctx = cvs.getContext('2d');
-const fx = document.getElementById('fx'); const fxc = fx.getContext('2d');
-function resize(){ cvs.width=Math.floor(innerWidth*dpr); cvs.height=Math.floor(innerHeight*dpr); ctx.setTransform(dpr,0,0,dpr,0,0);
-                   fx.width=cvs.width; fx.height=cvs.height; fxc.setTransform(dpr,0,0,dpr,0,0); }
-addEventListener('resize', resize, {passive:true}); resize();
-
-/* ===== Optional sprite ===== */
-const narpeImg = new Image(); let narpeReady=false;
-narpeImg.onload=()=>narpeReady=true; narpeImg.onerror=()=>narpeReady=false;
-narpeImg.src='narpe.png';
-
-/* ===== Audio ===== */
-let audioCtx, masterGain, muted=false;
-function initAudio(){ if(audioCtx) return; audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-  masterGain=audioCtx.createGain(); masterGain.gain.value=.7; masterGain.connect(audioCtx.destination); startMusic(); }
-function startMusic(){ const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-  o.type='sine'; g.gain.value=0; o.connect(g).connect(masterGain); o.start();
-  const notes=[261.63,329.63,392,329.63,293.66,261.63,196,261.63]; let i=0;
-  setInterval(()=>{ if(!audioCtx||muted) return; const t=audioCtx.currentTime;
-    o.frequency.setTargetAtTime(notes[i%notes.length],t,.02);
-    g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(0,t);
-    g.gain.linearRampToValueAtTime(.08,t+.02);
-    g.gain.exponentialRampToValueAtTime(.0001,t+.35);
-    i++;
-  },420);
-}
-function sfxCoin(){ if(!audioCtx||muted) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-  o.type='triangle'; o.frequency.value=900; g.gain.value=0; o.connect(g).connect(masterGain);
-  const t=audioCtx.currentTime; o.start(t); o.frequency.exponentialRampToValueAtTime(1500,t+.08);
-  g.gain.linearRampToValueAtTime(.18,t+.01); g.gain.exponentialRampToValueAtTime(.0001,t+.22); o.stop(t+.24); }
-function sfxLose(){ if(!audioCtx||muted) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-  o.type='sawtooth'; o.frequency.value=420; g.gain.value=0; o.connect(g).connect(masterGain);
-  const t=audioCtx.currentTime; o.start(t); o.frequency.exponentialRampToValueAtTime(120,t+.4);
-  g.gain.linearRampToValueAtTime(.22,t+.01); g.gain.exponentialRampToValueAtTime(0.0001,t+.5); o.stop(t+.52); }
-
-/* ===== UI refs ===== */
-const overlay = document.getElementById('overlay');
-const secStart = document.getElementById('ovStart');
-const secHow   = document.getElementById('ovHow');
-const secOver  = document.getElementById('ovOver');
-const playBtn  = document.getElementById('playBtn');
-const playBtn2 = document.getElementById('playBtn2');
-const howBtn   = document.getElementById('howBtn');
-const backBtn  = document.getElementById('backBtn');
-const againBtn = document.getElementById('againBtn');
-const shareBtn = document.getElementById('shareBtn');
-const HUD = {
-  score:document.getElementById('score'),
-  coins:document.getElementById('coins'),
-  best:document.getElementById('best'),
-  pauseBtn:document.getElementById('pauseBtn'),
-  restartBtn:document.getElementById('restartBtn'),
-  muteBtn:document.getElementById('muteBtn'),
-};
-const finalScore = document.getElementById('finalScore');
-const finalMeta  = document.getElementById('finalMeta');
-
-/* ===== Overlay state machine ===== */
-let overlayMode='start';
-function setOverlay(mode){
-  overlayMode = mode;
-  overlay.classList.toggle('show', mode!=='hidden');
-
-  secStart.classList.toggle('show', mode==='start');
-  secHow.classList.toggle('show',   mode==='how');
-  secOver.classList.toggle('show',  mode==='over');
-}
-setOverlay('start');
-
-/* ===== Game state ===== */
-let running=false, paused=false, over=false;
-let tLast=0, time=0, spawnTimer=0, patternTimer=0, currentPattern='straight';
-let score=0, coins=0, best = Number(localStorage.getItem('narpe_best')||0);
-HUD.best.textContent='Best: '+best;
-
-let speed=175, speedMult=1.0; const SPEED_RAMP=0.02;
-
-const narpe={ x: innerWidth*0.24, y: innerHeight*0.5, vy:0, r:30, tilt:0, trail:[], flap:0, swimFlash:0, bob:0, glintPhase:0 };
-const OBS=[], COINS=[];
-const particles=[];
-let laneY=innerHeight*0.5, laneTarget=laneY;
-
-/* ===== Helpers ===== */
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const rnd=(a,b)=>a+Math.random()*(b-a);
-function circleRectHit(cx,cy,cr, rx,ry,rw,rh, margin=12){ const x1=rx+margin, y1=ry+margin, x2=rx+rw-margin, y2=ry+rh-margin; const nx=clamp(cx,x1,x2), ny=clamp(cy,y1,y2); const dx=cx-nx, dy=cy-ny; return dx*dx+dy*dy < cr*cr; }
-function circleHit(ax,ay,ar, bx,by,br){ const dx=ax-bx, dy=ay-by; return (dx*dx+dy*dy) < (ar+br)*(ar+br); }
-
-/* ===== Input (canvas only triggers swim; buttons control start/how) ===== */
-function swim(){
-  if(overlayMode!=='hidden') return;       // overlay visible → don't start
-  if(!running){ startGame(); return; }     // optional: tap canvas to start after pressing Play (kept soft)
-  if(over||paused) return;
-  narpe.vy = -460; narpe.swimFlash = 0.18;
-  for(let i=0;i<6;i++){ particles.push({x:narpe.x-16,y:narpe.y+4, vx:rnd(-140,-60), vy:rnd(-50,50), life:.4, color:'#c8f3ff'}); }
-}
-cvs.addEventListener('pointerdown', ()=>swim(), {passive:true});
-addEventListener('keydown',e=>{
-  if([' ','ArrowUp','Spacebar'].includes(e.key)){ e.preventDefault(); swim(); }
-  if(e.key==='p') togglePause();
-  if(e.key==='m') toggleMute();
-});
-HUD.pauseBtn.onclick=()=>togglePause();
-HUD.restartBtn.onclick=()=>reset(true);
-HUD.muteBtn.onclick=()=>toggleMute();
-
-howBtn.onclick = ()=> setOverlay('how');
-backBtn.onclick= ()=> setOverlay('start');
-playBtn.onclick = ()=> { setOverlay('hidden'); startGame(); };
-playBtn2.onclick= ()=> { setOverlay('hidden'); startGame(); };
-againBtn.onclick= ()=> { setOverlay('hidden'); startGame(); };
-shareBtn.onclick= ()=>{
-  const text = encodeURIComponent(`I scored ${score} in the $NARPE Swim & Dodge mini-game! Try to beat me 👀🌊`);
-  const url  = encodeURIComponent(location.origin);
-  window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
-};
-
-function togglePause(){
-  if(!running||over) return;
-  paused=!paused; HUD.pauseBtn.textContent = paused? 'Resume':'Pause';
-  setOverlay(paused? 'start' : 'hidden'); // reuse start panel look for pause (clean)
-}
-
-/* ===== Flow ===== */
-function startGame(){
-  reset(false);
-  running=true; paused=false; over=false;
-  setOverlay('hidden'); initAudio();
-  tLast = performance.now();
-  requestAnimationFrame(loop);
-}
-function reset(hard){
-  score=0; coins=0; speed=175; speedMult=1.0; spawnTimer=0; patternTimer=0; currentPattern='straight';
-  HUD.score.textContent='Score: 0'; HUD.coins.textContent='Coins: 0';
-  narpe.x=innerWidth*0.24; narpe.y=innerHeight*0.5; narpe.vy=0; narpe.tilt=0; narpe.trail.length=0;
-  narpe.flap=0; narpe.bob=0; narpe.glintPhase=0; narpe.swimFlash=0;
-  laneY=innerHeight*0.5; laneTarget=laneY;
-  OBS.length=0; COINS.length=0; particles.length=0;
-  if(hard){ running=false; paused=false; over=false; setOverlay('start'); }
-}
-function endGame(){
-  over=true; running=false; paused=false; sfxLose();
-  if(score>best){ best=score; localStorage.setItem('narpe_best',best); HUD.best.textContent='Best: '+best; }
-  finalScore.textContent = `Score: ${score}`;
-  finalMeta.textContent  = `Best: ${best} • Coins: ${coins}`;
-  setOverlay('over');
-}
-function toggleMute(){ muted=!muted; HUD.muteBtn.textContent = muted?'Unmute':'Mute'; if(audioCtx) masterGain.gain.value = muted? 0 : 0.7; }
-
-/* ===== Patterns & Spawning ===== */
-function pickPattern(){ const p=['straight','gentleWave','rising','falling','zigzag']; currentPattern=p[(Math.random()*p.length)|0]; patternTimer=4+Math.random()*4; }
-function updateLane(dt){
-  patternTimer -= dt; if(patternTimer<=0) pickPattern();
-  const h=innerHeight, top=h*0.2, bot=h*0.8;
-  switch(currentPattern){
-    case 'straight': laneTarget += rnd(-40,40); break;
-    case 'gentleWave': laneTarget += Math.sin(time*2.0)*36 + rnd(-12,12); break;
-    case 'rising': laneTarget -= 70*dt; break;
-    case 'falling': laneTarget += 70*dt; break;
-    case 'zigzag': laneTarget += (Math.sin(time*3.1)>0? 140:-140)*dt; break;
-  }
-  laneTarget = clamp(laneTarget, top, bot);
-  laneY += (laneTarget - laneY) * Math.min(1, dt*3.6);
-}
-function spawn(){
-  const h=innerHeight;
-  const GAP = Math.max(230, h * (0.32 + Math.random()*0.06)); // wide & fair
-  updateLane(0);
-  const yMid = laneY;
-  const v = speed * speedMult;
-
-  const topRect = Math.random() < 0.8;
-  const botRect = Math.random() < 0.7;
-
-  if(topRect) OBS.push(makeIceberg(innerWidth+60, yMid-GAP/2-190, 66, 290, -v));
-  else        OBS.push({shape:'circle', x: innerWidth+88, y: yMid-GAP/2-95, r:22, vx:-v, passed:false});
-
-  if(botRect) OBS.push(makeIceberg(innerWidth+60, yMid+GAP/2, 66, 290, -v));
-  else        OBS.push({shape:'circle', x: innerWidth+88, y: yMid+GAP/2+95, r:22, vx:-v, passed:false});
-
-  // anti-top idle
-  if(yMid < h*0.44 && Math.random()<0.22){
-    OBS.push(makeIceberg(innerWidth+60, 0, 54, Math.floor(100+Math.random()*120), -v, true));
-  }
-
-  // shiny coins
-  if(Math.random()<0.9){
-    COINS.push({x: innerWidth+60 + rnd(140,220), y: yMid + rnd(-GAP/3, GAP/3), r:12, vx:-v, got:false, a:0, pulse:0});
-  }
-
-  spawnTimer = 1.6 * (175 / speed);
-}
-
-/* ===== Fancy obstacles ===== */
-function makeIceberg(x,y,w,h,vx,ceiling=false){
-  const spikes = 5 + (Math.random()*3|0), pts=[];
-  for(let i=0;i<=spikes;i++){
-    const t=i/spikes, jitter=(Math.random()*0.35 - 0.18)*w;
-    const px=x + t*w + jitter*0.5;
-    const py=y + (ceiling ? (10+Math.random()*20) : (i===spikes? h : Math.max(0, Math.sin(t*Math.PI)*18 + Math.random()*14)));
-    pts.push({x:px,y:py});
-  }
-  return {shape:'poly', pts, x, y, w, h, vx, passed:false, ceiling};
-}
-
-/* ===== Particles / FX ===== */
-function burst(x,y,color='#ffd75e'){ for(let i=0;i<12;i++){ particles.push({x,y, vx:rnd(-120,120), vy:rnd(-160,-60), life:1, color}); } }
-
-/* ===== Drawing ===== */
-function drawBG(tm){
-  const w=innerWidth,h=innerHeight; ctx.clearRect(0,0,w,h);
-
-  // deep ocean gradient (already handled by body bg; add parallax + rays here)
-  ctx.globalAlpha=.14; ctx.fillStyle='#00102a';
-  for(let i=0;i<6;i++){ const y=h*0.82 + i*18; ctx.fillRect(-((tm*12)+(i*90))%(w+200), y, w+200, 6); }
-  ctx.globalAlpha=1;
-
-  for(let i=0;i<5;i++){
-    const x=(tm*0.02 + i*220)%(w+220)-220;
-    ctx.globalAlpha=.06; ctx.fillStyle='#7fd1ff';
-    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x+140,0); ctx.lineTo(x+40,h); ctx.lineTo(x-100,h); ctx.closePath(); ctx.fill();
-  }
-  ctx.globalAlpha=1;
-
-  for(let i=0;i<18;i++){
-    const bx=(tm*0.12 + i*(w/18))%(w+80)-40, by=(tm*0.06 + i*40)%(h+40)-20;
-    ctx.globalAlpha=.33; ctx.fillStyle='#b8f0ff';
-    ctx.beginPath(); ctx.arc(bx,h-by,3+(i%3),0,Math.PI*2); ctx.fill();
-  }
-  ctx.globalAlpha=1;
-}
-
-function drawNarpe(x,y,tilt,dt){
-  narpe.bob += dt*2; narpe.flap += dt*6; if(narpe.swimFlash>0) narpe.swimFlash -= dt; narpe.glintPhase += dt;
-  const vy=narpe.vy, squash=clamp(1 - vy/1200, .85, 1.12), stretch=clamp(1 + vy/1200, .88, 1.15);
-
-  // shadow
-  ctx.globalAlpha=.25; ctx.fillStyle='#001222'; ctx.beginPath(); ctx.ellipse(x+6,y+12,40,14,0,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
-
-  ctx.save(); ctx.translate(x, y + Math.sin(narpe.bob)*1.5); ctx.rotate(tilt*0.04); ctx.scale(stretch, squash);
-
-  if(narpeReady){
-    const s=96; ctx.drawImage(narpeImg,-s*0.6,-s*0.6,s*1.2,s*1.2);
-    const gl=(Math.sin(narpe.glintPhase*1.6)+1)/2; if(gl>0.86){ ctx.globalAlpha=(gl-0.86)*6*0.6; ctx.fillStyle='#fff';
-      ctx.beginPath(); ctx.moveTo(22,-18); ctx.lineTo(56,-26); ctx.lineTo(20,-8); ctx.closePath(); ctx.fill(); ctx.globalAlpha=1; }
-  } else {
-    ctx.fillStyle='#bfe7ff'; ctx.beginPath(); ctx.ellipse(0,0,44,34,0,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#e8f7ff'; ctx.beginPath(); ctx.ellipse(0,8,26,20,0,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#bfe7ff'; ctx.save(); ctx.translate(-40,8); ctx.rotate(Math.sin(narpe.flap)*0.25);
-    ctx.beginPath(); ctx.moveTo(0,0); ctx.quadraticCurveTo(-24,-8,-4,-16); ctx.quadraticCurveTo(12,-6,0,0); ctx.fill(); ctx.restore();
-    ctx.fillStyle='#bfe7ff'; ctx.save(); ctx.translate(-4,-18); ctx.rotate(Math.sin(narpe.flap*0.8)*0.15); ctx.beginPath();
-    ctx.moveTo(0,0); ctx.quadraticCurveTo(10,-10,16,0); ctx.quadraticCurveTo(8,-2,0,0); ctx.fill(); ctx.restore();
-    ctx.strokeStyle='#503200'; ctx.lineWidth=2; ctx.fillStyle='#ffd75e';
-    ctx.beginPath(); ctx.moveTo(22,-18); ctx.lineTo(58,-28); ctx.lineTo(20,-8); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.ellipse(8,-4,12,10,0,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(12,-4,4,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle='#ed6a5a'; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(6,10,12,.2*Math.PI,.9*Math.PI); ctx.stroke();
-  }
-
-  if(narpe.swimFlash>0){ ctx.globalAlpha=narpe.swimFlash*3; ctx.fillStyle='#c8f3ff'; ctx.beginPath(); ctx.ellipse(-28,6,18,8,0,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; }
-  ctx.restore();
-
-  // trail bubbles
-  narpe.trail.push({x:x-20,y:y+Math.sin(narpe.bob)*1.5,life:1});
-  for(let i=narpe.trail.length-1;i>=0;i--){
-    const p=narpe.trail[i]; p.life-=0.02; if(p.life<=0){ narpe.trail.splice(i,1); continue; }
-    ctx.globalAlpha=p.life*0.4; ctx.fillStyle='#c8f3ff';
-    ctx.beginPath(); ctx.arc(p.x, p.y + Math.sin((1-p.life)*6)*4, 3+p.life*2, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
-  }
-}
-function drawIceberg(poly){
-  ctx.save(); ctx.beginPath(); ctx.moveTo(poly.pts[0].x, poly.pts[0].y);
-  for(let i=1;i<poly.pts.length;i++){ const p=poly.pts[i]; ctx.lineTo(p.x,p.y); }
-  ctx.lineTo(poly.x+poly.w, poly.y+poly.h); ctx.lineTo(poly.x, poly.y+poly.h); ctx.closePath();
-  const g=ctx.createLinearGradient(poly.x,poly.y, poly.x, poly.y+poly.h); g.addColorStop(0,'#b9ecff'); g.addColorStop(1,'#7cc9e6'); ctx.fillStyle=g; ctx.fill();
-  ctx.strokeStyle='#368fb0'; ctx.lineWidth=2; ctx.stroke();
-  ctx.globalAlpha=.25; ctx.fillStyle='#e7f8ff';
-  for(let i=0;i<poly.pts.length-1;i++){ const a=poly.pts[i], b=poly.pts[i+1]; ctx.beginPath(); ctx.moveTo(a.x,a.y);
-    ctx.lineTo((a.x+b.x)/2, (a.y+b.y)/2 + (poly.ceiling?-8:8)); ctx.lineTo(b.x,b.y); ctx.closePath(); ctx.fill(); }
-  ctx.globalAlpha=.12; ctx.fillStyle='#fff'; ctx.fillRect(poly.x+6, poly.y+6, poly.w-12, 10); ctx.globalAlpha=1; ctx.restore();
-}
-function drawMine(o){
-  ctx.save(); ctx.translate(o.x,o.y);
-  const rad=o.r*1.9, g=ctx.createRadialGradient(0,0,0,0,0,rad); g.addColorStop(0,'rgba(130,180,255,.26)'); g.addColorStop(1,'rgba(130,180,255,0)');
-  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,rad,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#5c6b7a'; ctx.beginPath(); ctx.arc(0,0,o.r,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#7f8fa0'; for(let k=0;k<8;k++){ const a=k*Math.PI/4, R=o.r+10; ctx.beginPath(); ctx.arc(Math.cos(a)*R, Math.sin(a)*R, 4, 0, Math.PI*2); ctx.fill(); }
-  ctx.restore();
-}
-function drawCoin(c,dt){
-  c.a += dt*2.6; c.pulse += dt*2;
-  const scale = 1 + Math.sin(c.pulse)*0.06;
-  ctx.sav
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    function copyCA(){
+      const el = document.getElementById('ca');
+      const txt = el.textContent.trim();
+      navigator.clipboard.writeText(txt).then(()=>{
+        el.insertAdjacentHTML('afterend','<span class="ml-2 text-xs text-white/70">Copied!</span>');
+        setTimeout(()=>{ const s = el.parentElement.querySelector('span.text-xs'); if(s) s.remove(); },1200);
+      });
+    }
+  </script>
+</body>
+</html>
