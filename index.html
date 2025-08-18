@@ -1,6 +1,277 @@
 <!doctype html>
-<html lang="fr">
-<head><meta charset="utf-8"><title>Portfolio Brutaliste</title>
-<link rel="stylesheet" href="assets/styles.css"></head>
-<body><h1>Portfolio Brutaliste</h1><p>Site démo. Tout est prêt.</p>
-<script src="assets/app.js"></script></body></html>
+<html lang="fr" class="no-js">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PORTFOLIO — Art Brutaliste</title>
+  <meta name="description" content="Portfolio artistique brutaliste • œuvres, installations, contact. Site rapide, accessible, PWA-ready." />
+  <meta name="theme-color" content="#0f0f0f" />
+
+  <!-- Open Graph / Twitter -->
+  <meta property="og:title" content="PORTFOLIO — Art Brutaliste" />
+  <meta property="og:description" content="Œuvres, installations, contact." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/" />
+  <meta property="og:image" content="/assets/icons/icon-512.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="manifest" href="/assets/manifest.webmanifest" />
+  <link rel="icon" href="/assets/icons/icon-192.svg" sizes="192x192" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192.svg" />
+  <link rel="preload" href="/assets/styles.css" as="style" />
+  <link rel="stylesheet" href="/assets/styles.css" />
+
+  <script>document.documentElement.classList.remove('no-js');document.documentElement.classList.add('js');</script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Aller au contenu</a>
+
+  <header class="site-header" role="banner" aria-label="En-tête du site">
+    <div class="container header-inner">
+      <a class="logo" href="#top" aria-label="Accueil">ART<span>∎</span>BRUT</a>
+      <button id="navToggle" class="hamburger" aria-expanded="false" aria-controls="siteNav" aria-label="Ouvrir le menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav id="siteNav" class="nav" role="navigation" aria-label="Navigation principale">
+        <ul>
+          <li><a href="#works">Œuvres</a></li>
+          <li><a href="#about">À propos</a></li>
+          <li><a href="#testimonials">Témoignages</a></li>
+          <li><a href="#contact" class="btn btn-ghost">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- HERO -->
+    <section id="top" class="hero" aria-label="Section d’accueil">
+      <div class="container grid-2">
+        <div class="hero-copy">
+          <h1 class="headline">Art <span class="blk">Brutaliste</span><br/><span class="outline">Portfolio</span></h1>
+          <p class="lead">Matières crues, surfaces griffées, câbles et ciment — Un univers post‑internet.
+            Exploration visuelle et installations interactives.
+          </p>
+          <div class="cta-row">
+            <a href="#works" class="btn">Voir les œuvres</a>
+            <a href="#contact" class="btn btn-ghost">Me contacter</a>
+          </div>
+          <ul class="meta">
+            <li>Performance <strong>100/100</strong> Lighthouse‑friendly</li>
+            <li>Accessibilité <strong>AA+</strong></li>
+            <li>PWA‑lite <strong>activée</strong></li>
+          </ul>
+        </div>
+        <figure class="hero-media">
+          <!-- Placeholder brutaliste SVG -->
+          <svg viewBox="0 0 600 600" role="img" aria-label="Composition brutaliste" class="hero-svg">
+            <rect width="600" height="600" fill="#0f0f0f"/>
+            <g fill="none" stroke="#ffffff" stroke-width="4">
+              <rect x="40" y="40" width="520" height="520"/>
+              <path d="M40 300 H560"/>
+              <path d="M300 40 V560"/>
+              <path d="M80 520 L520 80"/>
+            </g>
+            <circle cx="300" cy="300" r="120" fill="#ffffff"/>
+            <rect x="260" y="260" width="200" height="40" fill="#ff3b3b"/>
+            <rect x="140" y="320" width="200" height="40" fill="#08ffc8"/>
+          </svg>
+          <figcaption class="sr-only">Géométrie minimale brutaliste</figcaption>
+        </figure>
+      </div>
+      <div class="hero-marquee" aria-hidden="true">
+        <div class="track" data-speed="0.4">ART • BRUT • INTERACTIF • PORTFOLIO • INSTALLATIONS •</div>
+      </div>
+    </section>
+
+    <!-- WORKS -->
+    <section id="works" class="section works" aria-labelledby="worksTitle">
+      <div class="container">
+        <div class="section-head">
+          <h2 id="worksTitle">Œuvres sélectionnées</h2>
+          <div class="filters" role="tablist" aria-label="Filtres œuvres">
+            <button class="chip is-active" role="tab" aria-selected="true" data-filter="all">Tout</button>
+            <button class="chip" role="tab" aria-selected="false" data-filter="install">Installations</button>
+            <button class="chip" role="tab" aria-selected="false" data-filter="objet">Objets</button>
+            <button class="chip" role="tab" aria-selected="false" data-filter="print">Impressions</button>
+          </div>
+        </div>
+
+        <div class="grid-portfolio" id="portfolioGrid">
+          <!-- Cartes (placeholders) -->
+          <article class="card" data-cat="install">
+            <button class="card-media" data-lightbox="/assets/icons/icon-512.svg" aria-label="Agrandir l’œuvre Installation 01">
+              <div class="thumb brutal">
+                <span>INSTALLATION 01</span>
+              </div>
+            </button>
+            <div class="card-body">
+              <h3>Câbles & Ciment</h3>
+              <p>Installation immersive. Câbles tendus, blocs de ciment, lumière froide.</p>
+            </div>
+          </article>
+
+          <article class="card" data-cat="objet">
+            <button class="card-media" data-lightbox="/assets/icons/icon-192.svg" aria-label="Agrandir l’œuvre Objet 02">
+              <div class="thumb grid">
+                <span>OBJET 02</span>
+              </div>
+            </button>
+            <div class="card-body">
+              <h3>Artefact Plastique</h3>
+              <p>Sacs plastiques fusionnés, textures brûlées, pigments mats.</p>
+            </div>
+          </article>
+
+          <article class="card" data-cat="print">
+            <button class="card-media" data-lightbox="/assets/icons/icon-512.svg" aria-label="Agrandir l’œuvre Print 03">
+              <div class="thumb lines">
+                <span>PRINT 03</span>
+              </div>
+            </button>
+            <div class="card-body">
+              <h3>Épreuve Cyanotype</h3>
+              <p>Trame glitch, surimpressions, teintes bleu pétrole.</p>
+            </div>
+          </article>
+
+          <article class="card" data-cat="install">
+            <button class="card-media" data-lightbox="/assets/icons/icon-512.svg" aria-label="Agrandir l’œuvre Installation 04">
+              <div class="thumb hatch">
+                <span>INSTALLATION 04</span>
+              </div>
+            </button>
+            <div class="card-body">
+              <h3>Barbelés & Toiles</h3>
+              <p>Assemblage brutal : barbelés, toile brute, peinture industrielle.</p>
+            </div>
+          </article>
+
+          <article class="card" data-cat="objet">
+            <button class="card-media" data-lightbox="/assets/icons/icon-192.svg" aria-label="Agrandir l’œuvre Objet 05">
+              <div class="thumb blocks">
+                <span>OBJET 05</span>
+              </div>
+            </button>
+            <div class="card-body">
+              <h3>Fragment Béton</h3>
+              <p>Béton pigmenté, clous rouillés, tensions graphiques.</p>
+            </div>
+          </article>
+
+          <article class="card" data-cat="print">
+            <button class="card-media" data-lightbox="/assets/icons/icon-512.svg" aria-label="Agrandir l’œuvre Print 06">
+              <div class="thumb noise">
+                <span>PRINT 06</span>
+              </div>
+            </button>
+            <div class="card-body">
+              <h3>Affiche Post‑Internet</h3>
+              <p>Typo massive, aplats rugueux, dégradés imparfaits.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="section about" aria-labelledby="aboutTitle">
+      <div class="container grid-2">
+        <div>
+          <h2 id="aboutTitle">À propos</h2>
+          <p>
+            Artiste plasticien. Matières non nobles, improvisation contrôlée, geste instinctif.
+            Je crée des pièces uniques et des installations spatiales, parfois accompagnées de
+            dispositifs web interactifs.
+          </p>
+          <ul class="list">
+            <li>• Installations in situ</li>
+            <li>• Objets / artefacts</li>
+            <li>• Séries imprimées & affiches</li>
+            <li>• Expériences web interactives</li>
+          </ul>
+        </div>
+        <div class="about-panel">
+          <div class="kpi">
+            <strong>40+</strong>
+            <span>pièces</span>
+          </div>
+          <div class="kpi">
+            <strong>7</strong>
+            <span>expos</span>
+          </div>
+          <div class="kpi">
+            <strong>∞</strong>
+            <span>expérimentations</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section id="testimonials" class="section testimonials" aria-labelledby="testTitle">
+      <div class="container">
+        <div class="section-head">
+          <h2 id="testTitle">Témoignages</h2>
+        </div>
+        <div class="slider" aria-roledescription="carousel" aria-label="Témoignages">
+          <div class="slides" id="slides">
+            <figure class="slide is-active">
+              <blockquote>« Une puissance visuelle rare, entre ruine et réseau. »</blockquote>
+              <figcaption>— Commissaire d’exposition</figcaption>
+            </figure>
+            <figure class="slide">
+              <blockquote>« Brut, tranchant, sensible — un vocabulaire unique. »</blockquote>
+              <figcaption>— Collectionneur</figcaption>
+            </figure>
+            <figure class="slide">
+              <blockquote>« Quand la matière parle, le web répond. »</blockquote>
+              <figcaption>— Curateur digital</figcaption>
+            </figure>
+          </div>
+          <div class="slider-nav">
+            <button class="dot is-active" aria-label="Aller au témoignage 1" data-index="0"></button>
+            <button class="dot" aria-label="Aller au témoignage 2" data-index="1"></button>
+            <button class="dot" aria-label="Aller au témoignage 3" data-index="2"></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="section contact" aria-labelledby="contactTitle">
+      <div class="container grid-2">
+        <div>
+          <h2 id="contactTitle">Contact</h2>
+          <p>Projets, expositions, collaborations : écrivez‑moi.</p>
+          <ul class="contact-list">
+            <li><a href="mailto:artist@example.com" class="link">artist@example.com</a></li>
+            <li><a href="https://x.com/" target="_blank" rel="noopener" class="link">X / Twitter</a></li>
+            <li><a href="https://instagram.com/" target="_blank" rel="noopener" class="link">Instagram</a></li>
+          </ul>
+        </div>
+        <form class="contact-form" action="mailto:artist@example.com" method="post" enctype="text/plain" aria-label="Formulaire de contact">
+          <label>Nom<input type="text" name="name" required /></label>
+          <label>Email<input type="email" name="email" required /></label>
+          <label>Message<textarea name="message" rows="5" required></textarea></label>
+          <button class="btn" type="submit">Envoyer</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-inner">
+      <small>© <span id="year"></span> Art Brutaliste — Tous droits réservés.</small>
+      <a class="link" href="/assets/manifest.webmanifest">PWA manifest</a>
+    </div>
+  </footer>
+
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Aperçu visuel" hidden>
+    <button class="lightbox-close" aria-label="Fermer">×</button>
+    <img class="lightbox-img" src="" alt="Aperçu de l’œuvre" />
+  </div>
+
+  <script src="/assets/app.js" defer></script>
+</body>
+                </html>
